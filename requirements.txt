@@ -1,0 +1,14 @@
+numpy
+pandas
+matplotlib
+pillow
+scikit-image
+rasterio
+torch==2.2.2
+torchvision==0.17.2
+--extra-index-url https://download.pytorch.org/whl/cu118
+ftfy
+regex
+tqdm
+git+https://github.com/openai/CLIP.git
+lightning
