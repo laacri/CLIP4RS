@@ -14,6 +14,9 @@ echo "Running on nodes: $SLURM_NODELIST"
 echo "Arguments passed: $@"
 
 cd .
+pwd
+mkdir -p sout
+ls -l
 export WANDB_MODE=offline
 module load anaconda3
 module load cuda
