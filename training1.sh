@@ -1,5 +1,5 @@
 #!/bin/sh
-#SBATCH -A IsCc7_AdvCMT 
+#SBATCH -A IscrC_AdvCMT 
 #SBATCH -p boost_usr_prod
 #SBATCH --time=24:00:00
 #SBATCH --nodes=1
