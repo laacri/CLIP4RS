@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #SBATCH -A IscrC_AdvCMT 
 #SBATCH -p boost_usr_prod
 #SBATCH --time=24:00:00
@@ -7,21 +7,19 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --job-name="clip_msi1"
-#SBATCH --out="./sout/clip_msi1_training_"{$1}".out"
+#SBATCH --out="./sout/clip_msi1_training_%j.out"
 #SBATCH --open-mode=truncate
 
 echo "Running on nodes: $SLURM_NODELIST"
-echo "Arguments passed: {$1}"
+echo "Arguments passed: $1"
 
-cd .
 pwd
 mkdir -p sout
 ls -l
 export WANDB_MODE=offline
-module purge
 module load anaconda3
 module load cuda
-conda init
+#conda init
 
 source activate test_env
 
