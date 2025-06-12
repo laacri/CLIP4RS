@@ -1,0 +1,104 @@
+Running on nodes: lrdn1960
+Arguments passed: 1
+/leonardo/home/userexternal/cditulli/thesis
+total 40
+drwxr-xr-x 2 cditulli interactive 4096 Jun 12 15:23 checkpoints
+drwxr-xr-x 2 cditulli interactive 4096 Jun 12 15:23 logs
+-rw-r--r-- 1 cditulli interactive    8 Jun 11 17:57 README.md
+-rw-r--r-- 1 cditulli interactive  220 Jun 12 13:32 requirements.txt
+drwxr-xr-x 2 cditulli interactive 4096 Jun 12 15:38 sout
+drwxr-xr-x 2 cditulli interactive 4096 Jun 12 15:24 tb_logs
+-rw-r--r-- 1 cditulli interactive  530 Jun 12 15:36 training1.sh
+-rw-r--r-- 1 cditulli interactive 9410 Jun 12 11:48 training_clip_msi1.py
+Traceback (most recent call last):
+  File "/leonardo/prod/spack/5.2/install/0.21/linux-rhel8-icelake/gcc-8.5.0/anaconda3-2023.09-0-zcre7pfofz45c3btxpdk5zvcicdq5evx/bin/conda", line 12, in <module>
+    from conda.cli import main
+ModuleNotFoundError: No module named 'conda'
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.0 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "/leonardo/home/userexternal/cditulli/thesis/training_clip_msi1.py", line 18, in <module>
+    import clip
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/clip/__init__.py", line 1, in <module>
+    from .clip import *
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/clip/clip.py", line 8, in <module>
+    import torch
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/torch/__init__.py", line 1477, in <module>
+    from .functional import *  # noqa: F403
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/torch/functional.py", line 9, in <module>
+    import torch.nn.functional as F
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/torch/nn/__init__.py", line 1, in <module>
+    from .modules import *  # noqa: F403
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/torch/nn/modules/__init__.py", line 35, in <module>
+    from .transformer import TransformerEncoder, TransformerDecoder, \
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/torch/nn/modules/transformer.py", line 20, in <module>
+    device: torch.device = torch.device(torch._C._get_default_device()),  # torch.device('cpu'),
+/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/torch/nn/modules/transformer.py:20: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ../torch/csrc/utils/tensor_numpy.cpp:84.)
+  device: torch.device = torch.device(torch._C._get_default_device()),  # torch.device('cpu'),
+Traceback (most recent call last):
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/urllib/request.py", line 1348, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/http/client.py", line 1303, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/http/client.py", line 1349, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/http/client.py", line 1298, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/http/client.py", line 1058, in _send_output
+    self.send(msg)
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/http/client.py", line 996, in send
+    self.connect()
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/http/client.py", line 1468, in connect
+    super().connect()
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/http/client.py", line 962, in connect
+    self.sock = self._create_connection(
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/socket.py", line 863, in create_connection
+    raise exceptions[0]
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/socket.py", line 848, in create_connection
+    sock.connect(sa)
+OSError: [Errno 101] Network is unreachable
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/leonardo/home/userexternal/cditulli/thesis/training_clip_msi1.py", line 257, in <module>
+    main()
+  File "/leonardo/home/userexternal/cditulli/thesis/training_clip_msi1.py", line 220, in main
+    model = CLIPWithMSIEmbedder1(in_channels, class_names, learning_rate)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/thesis/training_clip_msi1.py", line 157, in __init__
+    self.clip_model, _ = clip.load("ViT-B/32", device=device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/clip/clip.py", line 120, in load
+    model_path = _download(_MODELS[name], download_root or os.path.expanduser("~/.cache/clip"))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/clip/clip.py", line 59, in _download
+    with urllib.request.urlopen(url) as source, open(download_target, "wb") as output:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/urllib/request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/urllib/request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/urllib/request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/urllib/request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/urllib/request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/urllib/request.py", line 1351, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 101] Network is unreachable>
+srun: error: lrdn1960: task 0: Exited with exit code 1
