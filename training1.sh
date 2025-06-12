@@ -19,7 +19,6 @@ ls -l
 export WANDB_MODE=offline
 module load anaconda3
 module load cuda
-#conda init
 
 source activate test_env
 

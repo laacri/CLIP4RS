@@ -154,7 +154,7 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
     def __init__(self, in_channels, class_names, learning_rate):
         super().__init__()
         self.save_hyperparameters()
-        self.clip_model, _ = clip.load("ViT-B/32", device=device)
+        self.clip_model, _ = clip.load("ViT-B/32", device=device, download_root=os.path.expanduser("~/.cache/clip"))
         
         # Freeze CLIP parameters 
         for param in self.clip_model.parameters():
