@@ -37,9 +37,9 @@ warnings.filterwarnings("ignore")
 
 # CONFIG ----------------------------------------------------------------------
 data_path = '../EuroSAT_MSI_data/' # the script will run inside the thesis/ folder
-checkpoint_dir = './thesis/checkpoints/'
-log_dir = './thesis/logs/'
-tb_log_dir = './thesis/tb_logs/'
+checkpoint_dir = './checkpoints/'
+log_dir = './logs/'
+tb_log_dir = './tb_logs/'
 batch_size = 32
 num_workers = 4 #2
 #max_epochs = 10 # pass parameter from command line
@@ -231,11 +231,11 @@ def main():
         mode="max"
     )
 
-    checkpoint_callback_last = ModelCheckpoint(
-        dirpath=checkpoint_dir,
-        filename="clip-msi1-eurosat-last",
-        save_last=True
-    )
+    # checkpoint_callback_last = ModelCheckpoint(
+    #     dirpath=checkpoint_dir,
+    #     filename="clip-msi1-eurosat-last",
+    #     save_last=True
+    # )
 
     logger = CSVLogger(save_dir=log_dir, name="clip-msi1-eurosat")
     logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi1-eurosat")
@@ -247,16 +247,14 @@ def main():
         log_every_n_steps=5,
         enable_progress_bar=True,
         enable_model_summary=True,
-        callbacks=[checkpoint_callback_best, checkpoint_callback_last],
+        callbacks=[checkpoint_callback_best], #, checkpoint_callback_last
         logger=[logger, logger_tb]
     )
 
-    print("\nStarting TRAINING and VALIDATING...\n")
     trainer.fit(model, datamodule=data_module)
-    print("done")
-    print("\nStarting TESTING...")
+    trainer.validate(model, datamodule=data_module)
     trainer.test(model, datamodule=data_module)
-    print("done")
+
 
 if __name__ == "__main__":
     main()
