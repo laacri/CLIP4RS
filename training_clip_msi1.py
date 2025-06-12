@@ -33,7 +33,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 torch._dynamo.config.suppress_errors = True
 
 # CONFIG ----------------------------------------------------------------------
-data_path = './EuroSAT_MSI_data/'  # Adapt to cluster path
+data_path = '../EuroSAT_MSI_data/' # the script will run inside the thesis/ folder
 checkpoint_dir = './thesis/checkpoints/'
 log_dir = './thesis/logs/'
 tb_log_dir = './thesis/tb_logs/'
