@@ -26,6 +26,7 @@ import torchvision.transforms as T
 import lightning as L
 from lightning import Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from lightning.pytorch.loggers import CSVLogger, TensorBoardLogger
 from sklearn.preprocessing import LabelEncoder
 
@@ -228,14 +229,15 @@ def main():
         filename="clip-msi1-eurosat-{epoch:02d}-{val_acc:.4f}",
         save_top_k=1,
         monitor="val_acc",
-        mode="max"
+        mode="max",
+        save_last = True
     )
 
-    # checkpoint_callback_last = ModelCheckpoint(
-    #     dirpath=checkpoint_dir,
-    #     filename="clip-msi1-eurosat-last",
-    #     save_last=True
-    # )
+    early_stop_callback = EarlyStopping(
+        monitor="val_loss",
+        patience=10,
+        mode="min"
+    )
 
     logger = CSVLogger(save_dir=log_dir, name="clip-msi1-eurosat")
     logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi1-eurosat")
@@ -247,7 +249,7 @@ def main():
         log_every_n_steps=5,
         enable_progress_bar=True,
         enable_model_summary=True,
-        callbacks=[checkpoint_callback_best], #, checkpoint_callback_last
+        callbacks=[checkpoint_callback_best], #, early_stop_callback
         logger=[logger, logger_tb]
     )
 
