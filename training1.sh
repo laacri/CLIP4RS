@@ -7,11 +7,11 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --job-name="clip_msi1"
-#SBATCH --out="./sout/clip_msi1_training_"$1".out"
+#SBATCH --out="./sout/clip_msi1_training_"{$1}".out"
 #SBATCH --open-mode=truncate
 
 echo "Running on nodes: $SLURM_NODELIST"
-echo "Arguments passed: $@"
+echo "Arguments passed: {$1}"
 
 cd .
 pwd
