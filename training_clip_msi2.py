@@ -1,6 +1,6 @@
 '''
-Training script for the first CLIP+MSI model.
-This uses MSI_Embedder 1 to preprocess the input MSI images.
+Training script for the second CLIP+MSI model.
+This uses MSI_Embedder 2 to preprocess the input MSI images.
 '''
 
 # IMPORTS ---------------------------------------------------------------------
@@ -64,32 +64,32 @@ labels_map = {
 labels = list(labels_map.values())
 
 # DATA SPLIT ------------------------------------------------------------------
-def build_split(seed=42):
-    random.seed(seed)
-    test_images, val_images, train_images = [], [], []
+# def build_split(seed=42):
+#     random.seed(seed)
+#     test_images, val_images, train_images = [], [], []
 
-    for folder in os.listdir(data_path):
-        imgs = os.listdir(os.path.join(data_path, folder))
-        test = random.sample(imgs, 500)
-        remain = [img for img in imgs if img not in test]
-        val = random.sample(remain, 500)
-        train = random.sample([img for img in remain if img not in val], 1000)
-        test_images += test
-        val_images += val
-        train_images += train
+#     for folder in os.listdir(data_path):
+#         imgs = os.listdir(os.path.join(data_path, folder))
+#         test = random.sample(imgs, 500)
+#         remain = [img for img in imgs if img not in test]
+#         val = random.sample(remain, 500)
+#         train = random.sample([img for img in remain if img not in val], 1000)
+#         test_images += test
+#         val_images += val
+#         train_images += train
 
-    def to_df(image_list):
-        data = []
-        for img_id in image_list:
-            folder = img_id.split('_')[0]
-            data.append({
-                'image_id': img_id,
-                'filename': os.path.join(data_path, folder, img_id),
-                'label': labels_map[folder]
-            })
-        return pd.DataFrame(data)
+#     def to_df(image_list):
+#         data = []
+#         for img_id in image_list:
+#             folder = img_id.split('_')[0]
+#             data.append({
+#                 'image_id': img_id,
+#                 'filename': os.path.join(data_path, folder, img_id),
+#                 'label': labels_map[folder]
+#             })
+#         return pd.DataFrame(data)
 
-    return to_df(train_images), to_df(val_images), to_df(test_images)
+#     return to_df(train_images), to_df(val_images), to_df(test_images)
 
 # NORMALIZATION ---------------------------------------------------------------
 def normalize(array):
@@ -216,8 +216,85 @@ def main():
     args = parser.parse_args()
     max_epochs = args.max_epochs
 
-    train_df, val_df, test_df = build_split()
-    le = LabelEncoder().fit(train_df['label'])
+    #train_df, val_df, test_df = build_split()
+
+
+    # TEST dataframe - 5000 images randomly sampled with seed = 42 -----------------
+    print("\nTEST set: -------------------------------------------------------------")
+    test_images = []
+
+    for image_folder in os.listdir(data_path):
+        random.seed(42)
+        random_samples = random.sample(os.listdir(data_path + image_folder), 500)
+        test_images += random_samples
+    print(len(test_images), 'images\n')
+
+    data = []
+    for img_id in test_images:
+        folder = img_id.split('_')[0]
+        filename = os.path.join(data_path, folder, img_id)
+        data.append({
+            'image_id': img_id,
+            'filename': filename,
+            'label': labels_map[folder]
+        })
+
+    test_df = pd.DataFrame(data)
+    print(test_df.head())
+
+
+    # VALIDATION dataframe - 5000 images randomly sampled with seed = 42 -----------
+    print("\nVALIDATION set: -------------------------------------------------------")
+    val_images = []
+
+    for image_folder in os.listdir(data_path):
+        possible_images = [img for img in os.listdir(data_path + image_folder) if img not in test_images]
+        random.seed(42)
+        random_samples = random.sample(possible_images, 500)
+        val_images += random_samples
+    print(len(val_images), 'images\n')
+
+    data = []
+    for img_id in val_images:
+        folder = img_id.split('_')[0]
+        filename = os.path.join(data_path, folder, img_id)
+        data.append({
+            'image_id': img_id,
+            'filename': filename,
+            'label': labels_map[folder]
+        })
+
+    val_df = pd.DataFrame(data)
+    print(val_df.head())
+
+
+    # TRAIN dataframe - 10000 remaining images randomly sampled with seed = 42 -----
+    print("\n\nTRAIN set: ----------------------------------------------------------")
+    train_images = []
+
+    for image_folder in os.listdir(data_path):
+        possible_images = [img for img in os.listdir(data_path + image_folder) if (img not in test_images and img not in val_images)]
+        random.seed(42)
+        random_samples = random.sample(possible_images, 1000)
+        train_images += random_samples
+    print(len(train_images), 'images\n')
+
+    data = []
+    for img_id in train_images:
+        folder = img_id.split('_')[0]
+        filename = os.path.join(data_path, folder, img_id)
+        data.append({
+            'image_id': img_id,
+            'filename': filename,
+            'label': labels_map[folder]
+        })
+
+    train_df = pd.DataFrame(data)
+    print(train_df.head())
+
+
+    le = LabelEncoder()
+    le.fit(train_df['label'])
     label2idx = {label: idx for idx, label in enumerate(le.classes_)}
     class_names = list(label2idx.keys())
 
