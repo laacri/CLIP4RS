@@ -37,7 +37,7 @@ log_dir = './logs/'
 tb_log_dir = './tb_logs/'
 batch_size = 32
 num_workers = 4
-learning_rate = 1e-3 #5e-3
+learning_rate = 5e-3 #1e-3
 
 # Loading and mapping labels
 # (in order to correspond to the ones in m-bigearthnet from GEO-Bench)
@@ -312,7 +312,7 @@ def main():
     # 4. Specify a checkpoint callback
     checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
         dirpath=checkpoint_dir,
-        filename="clip-msi2-eurosat-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
+        filename="clip-msi2-eurosat-lr5e-3-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
         save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
         monitor="val_acc",
         mode="max",
@@ -325,10 +325,10 @@ def main():
     # - save_top_k=0 disables saving entirely
 
     # # 5. Specify logger in csv format
-    logger = CSVLogger(save_dir=log_dir, name="clip-msi2-eurosat")
+    logger = CSVLogger(save_dir=log_dir, name="clip-msi2-eurosat-lr5e-3")
 
     # define the logger object
-    logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi2-eurosat", log_graph=True)
+    logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi2-eurosat-lr5e-3", log_graph=True)
 
     # 6. Trainer
     trainer = L.Trainer(
