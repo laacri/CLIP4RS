@@ -116,23 +116,20 @@ class EuroSATDataModule(L.LightningDataModule):
 
 
 
-class MSIEmbedder2(nn.Module):
-    def __init__(self, in_channels):
-        super(MSIEmbedder2, self).__init__()
-        self.proj2 = nn.Sequential(
-            nn.Conv2d(in_channels, 64, kernel_size = 1), # 32, 128 possible other choices
-            nn.ReLU(),
-            nn.Conv2d(64, 3, kernel_size = 1),
-            nn.ReLU()
-        )
+class MSIEmbedder1(nn.Module):
+    def __init__(self, in_channels: int):
+        super(MSIEmbedder1, self).__init__()
+        self.proj = nn.Conv2d(in_channels, out_channels = 3, kernel_size = 1)
+        # stride=1, padding=0 by default
+        # 1x1 convolution, 1 pixel -> 1 pixel (kernel_size = 1)
 
     def forward(self, x):
-        return self.proj2(x)
-    
+        return self.proj(x) 
 
 
-class CLIPWithMSIEmbedder2(L.LightningModule):
-    def __init__(self, in_channels, class_names, learning_rate): # was running with 5e-3!!!
+
+class CLIPWithMSIEmbedder1(L.LightningModule):
+    def __init__(self, in_channels, class_names, learning_rate):
         super().__init__()
         self.save_hyperparameters()
 
@@ -148,7 +145,7 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
         self.text_encoder = self.clip_model.encode_text
 
         # MSI embedder
-        self.embedder = MSIEmbedder2(in_channels)
+        self.embedder = MSIEmbedder1(in_channels)
 
         # Compute text embeddings once for all
         prompts = [f"a satellite photo of {name.lower()}" for name in class_names]
@@ -182,7 +179,7 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits = self.predict_logits(x)
-        loss = F.cross_entropy(logits, y)
+        loss = F.cross_entropy(logits, y) # check for loss function balancing
         acc = (logits.argmax(dim=1) == y).float().mean()
         self.log("train_loss", loss, on_step=False, on_epoch=True)
         self.log("train_acc", acc, on_step=False, on_epoch=True)
@@ -199,12 +196,13 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self.predict_logits(x)
+        loss = F.cross_entropy(logits, y)
         acc = (logits.argmax(dim=1) == y).float().mean()
+        self.log("test_loss", loss, on_step=False, on_epoch=True)
         self.log("test_acc", acc, on_step=False, on_epoch=True)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.embedder.parameters(), lr=self.learning_rate)
-    
 
 
 
@@ -215,6 +213,7 @@ def main():
     parser.add_argument('--max_epochs', type=int, default=10, help='Number of training epochs')
     args = parser.parse_args()
     max_epochs = args.max_epochs
+
 
     # TEST dataframe - 5000 images randomly sampled with seed = 42 -----------------
     print("\nTEST set: -------------------------------------------------------------")
@@ -297,22 +296,22 @@ def main():
     class_names = list(label2idx.keys())
 
     # 2. Load data module
-    data_module = EuroSATDataModule(train_df, val_df, test_df, label2idx, batch_size) # batch_size = 8, 16, 32, 64(not sure)
+    data_module = EuroSATDataModule(train_df, val_df, test_df, label2idx, batch_size)
 
     # 3. Create the model
-    model_2 = CLIPWithMSIEmbedder2(
+    model_1 = CLIPWithMSIEmbedder1(
         in_channels = 13,
         class_names = class_names,
         learning_rate = learning_rate,
     )
 
     # 3.1 Compile the model - can result in significant speedups
-    #model_2 = torch.compile(model_2)  # W0509: not enough SMs to use max_autotune_gemm mode -> doesn't work, turn it off
+    #model = torch.compile(model)
 
     # 4. Specify a checkpoint callback
     checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
         dirpath=checkpoint_dir,
-        filename="clip-msi2-eurosat-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
+        filename="clip-msi1-eurosat-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
         save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
         monitor="val_acc",
         mode="max",
@@ -325,10 +324,10 @@ def main():
     # - save_top_k=0 disables saving entirely
 
     # # 5. Specify logger in csv format
-    logger = CSVLogger(save_dir=log_dir, name="clip-msi2-eurosat")
+    logger = CSVLogger(save_dir=log_dir, name="clip-msi1-eurosat")
 
     # define the logger object
-    logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi2-eurosat", log_graph=True)
+    logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi1-eurosat", log_graph = True)
 
     # 6. Trainer
     trainer = L.Trainer(
@@ -337,21 +336,18 @@ def main():
         devices=1,
         #precision="16-mixed", # enable AMP (Automatic Mixed Precision) # -> error after first epoch
         log_every_n_steps=5,
-        enable_progress_bar=True,
-        enable_model_summary=True,
         callbacks=[checkpoint_callback],
         logger=[logger, logger_tb]
     )
 
     # 7. Training
-    trainer.fit(model_2, datamodule=data_module)
+    trainer.fit(model_1, datamodule=data_module)
 
-    trainer.validate(model_2, datamodule=data_module)
+    trainer.validate(model_1, datamodule=data_module)
 
-    trainer.test(model_2, datamodule=data_module)
+    trainer.test(model_1, datamodule=data_module)
 
 
 
 if __name__ == "__main__":
     main()
-
