@@ -34,7 +34,7 @@ from sklearn.preprocessing import LabelEncoder
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 torch._dynamo.config.suppress_errors = True
-warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore") # without thiis, the output file is unreadable
 
 # CONFIG ----------------------------------------------------------------------
 data_path = '../EuroSAT_MSI_data/' # the script will run inside the thesis/ folder

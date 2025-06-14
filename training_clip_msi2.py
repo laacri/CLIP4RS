@@ -61,6 +61,7 @@ labels_map = {
     'River': 'River',
     'AnnualCrop': 'Annual Crop'
 }
+
 labels = list(labels_map.values())
 
 # DATA SPLIT ------------------------------------------------------------------
