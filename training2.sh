@@ -28,4 +28,4 @@ module load cuda
 source activate test_env
 
 #srun python training_clip_msi2.py --max_epochs "$1"
-srun python training_cli2_original.py --max_epochs "$1"
+srun python training_clip2_original.py --max_epochs "$1"
