@@ -12,7 +12,7 @@
 
 
 timestamp=$(date +%Y%m%d_%H%M%S)
-outfile="./sout/clip_msi1_training_${SLURM_JOB_ID}_${timestamp}.out"
+outfile="./sout/clip_msi1_trained_${SLURM_JOB_ID}_${timestamp}.out"
 exec > >(tee -a "$outfile") 2>&1
 
 echo "Running on nodes: $SLURM_NODELIST"
@@ -27,4 +27,5 @@ module load cuda
 
 source activate test_env
 
-srun python training_clip_msi1.py --max_epochs "$1"
+#srun python training_clip_msi1.py --max_epochs "$1"
+srun python training_clip1_original.py --max_epochs "$1"
