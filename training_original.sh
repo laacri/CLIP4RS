@@ -16,6 +16,7 @@ outfile="./sout/clip_msi2_original_training_${SLURM_JOB_ID}_${timestamp}.out"
 exec > >(tee -a "$outfile") 2>&1
 
 echo "Running on nodes: $SLURM_NODELIST"
+echo "Arguments passed: $1"
 
 pwd
 mkdir -p sout
@@ -26,4 +27,4 @@ module load cuda
 
 source activate test_env
 
-srun python training_clip2_original.py
+srun python training_clip2_original.py --max_epochs "$1"

@@ -27,6 +27,7 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from sklearn.preprocessing import LabelEncoder
 import torch._dynamo
 import warnings
+import argparse
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -218,8 +219,10 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
 # MAIN EXECUTION --------------------------------------------------------------
 def main():
 
-    # Build train, validation and test datasets
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--max_epochs', type=int, default=10, help='Number of training epochs')
+    args = parser.parse_args()
+    max_epochs = args.max_epochs
 
     # TEST dataframe - 5000 images randomly sampled with seed = 42 -----------------
     print("\nTEST set: -------------------------------------------------------------")
@@ -337,7 +340,7 @@ def main():
 
     # 6. Trainer
     trainer = L.Trainer(
-        max_epochs=1,
+        max_epochs=max_epochs,
         accelerator="auto",
         devices=1,
         #precision="16-mixed", # enable AMP (Automatic Mixed Precision) # -> error after first epoch
