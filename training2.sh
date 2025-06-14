@@ -12,7 +12,7 @@
 
 
 timestamp=$(date +%Y%m%d_%H%M%S)
-outfile="./sout/clip_msi2_training_${SLURM_JOB_ID}_${timestamp}.out"
+outfile="./sout/clip_msi2_trained_${SLURM_JOB_ID}_${timestamp}.out"
 exec > >(tee -a "$outfile") 2>&1
 
 echo "Running on nodes: $SLURM_NODELIST"
