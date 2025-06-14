@@ -1,0 +1,13 @@
+class_names:
+- Annual Crop
+- Forest
+- Herbaceous Vegetation
+- Highway
+- Industrial Buildings
+- Pasture
+- Permanent Crop
+- Residential Buildings
+- River
+- Sea or Lake
+in_channels: 13
+learning_rate: 0.001
