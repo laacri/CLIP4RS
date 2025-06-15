@@ -331,8 +331,9 @@ def main():
 
 
     # Build TEST, VALID and TRAIN dataframes
-    images_folder = 'm-brick-kiln'
-    images_path = os.path.join(data_path, images_folder)
+    # images_folder = 'm-brick-kiln'
+    # images_path = os.path.join(data_path, images_folder)
+    images_path = data_path
 
     # Read default partition
     with open(os.path.join(images_path, 'default_partition.json'), 'r') as file:
