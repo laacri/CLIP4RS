@@ -478,28 +478,28 @@ def main():
         logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi1-geobench-brick", log_graph = True)
 
     elif args.model == 2:
-            model = CLIPWithMSIEmbedder2(
-                in_channels = 13,
-                class_names = class_names,
-                learning_rate = learning_rate,
-                class_weights = weights_tensor
-            )
+        model = CLIPWithMSIEmbedder2(
+            in_channels = 13,
+            class_names = class_names,
+            learning_rate = learning_rate,
+            class_weights = weights_tensor
+        )
 
-            # 4. Specify a checkpoint callback
-            checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
-                dirpath=checkpoint_dir,
-                filename="clip-msi2-geobench-brick-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
-                save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
-                monitor="val_acc",
-                mode="max",
-                save_last = True
-            )
+        # 4. Specify a checkpoint callback
+        checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
+            dirpath=checkpoint_dir,
+            filename="clip-msi2-geobench-brick-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
+            save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
+            monitor="val_acc",
+            mode="max",
+            save_last = True
+        )
 
-            # # 5. Specify logger in csv format
-            logger = CSVLogger(save_dir="content", name="clip-msi2-geobench-brick")
+        # # 5. Specify logger in csv format
+        logger = CSVLogger(save_dir="content", name="clip-msi2-geobench-brick")
 
-            # define the logger object
-            logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi2-geobench-brick", log_graph = True)
+        # define the logger object
+        logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi2-geobench-brick", log_graph = True)
 
     else:
         raise ValueError("Unsupported model type. Choose --model 1 or 2.")
