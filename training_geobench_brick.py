@@ -33,7 +33,7 @@ torch._dynamo.config.suppress_errors = True
 warnings.filterwarnings("ignore")
 
 
-data_path = '../EuroSAT_MSI_data/' # the script will run inside the thesis/ folder
+data_path = '../m-brick-kiln/' # the script will run inside the thesis/ folder
 checkpoint_dir = './checkpoints/'
 log_dir = './logs/'
 tb_log_dir = './tb_logs/'
@@ -331,7 +331,6 @@ def main():
 
 
     # Build TEST, VALID and TRAIN dataframes
-    data_path = "/content/drive/MyDrive/Thesis CLIP4EO/GEO-Bench classification data/"
     images_folder = 'm-brick-kiln'
     images_path = os.path.join(data_path, images_folder)
 
