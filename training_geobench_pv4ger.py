@@ -481,7 +481,7 @@ def main():
 
     elif args.model == 2:
         model = CLIPWithMSIEmbedder2(
-            in_channels = 13,
+            in_channels = n_bands,
             class_names = class_names,
             learning_rate = learning_rate,
             class_weights = weights_tensor
