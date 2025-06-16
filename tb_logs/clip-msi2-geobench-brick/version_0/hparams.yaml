@@ -1,0 +1,5 @@
+class_names:
+- not brick kiln
+- brick kiln
+in_channels: 13
+learning_rate: 0.001
