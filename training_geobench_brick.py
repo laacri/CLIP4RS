@@ -496,7 +496,7 @@ def main():
         )
 
         # # 5. Specify logger in csv format
-        logger = CSVLogger(save_dir="content", name="clip-msi2-geobench-brick")
+        logger = CSVLogger(log_dir, name="clip-msi2-geobench-brick")
 
         # define the logger object
         logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi2-geobench-brick", log_graph = True)
