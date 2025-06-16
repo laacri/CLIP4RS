@@ -431,6 +431,7 @@ def main():
                 for _, row in band_stats.iterrows()}
 
     print("\n", stats_dict)
+    
 
     # 1. Encode string labels into integers
     # le = LabelEncoder()
