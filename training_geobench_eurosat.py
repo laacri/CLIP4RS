@@ -365,7 +365,7 @@ def main():
 
     # Read test, val and train dataframe from files
     print("\nTEST set: -------------------------------------------------------------")
-    test_df = pd.read_csv('..//test_df_m-eurosat.csv')
+    test_df = pd.read_csv('../test_df_m-eurosat.csv')
     print(test_df.head())
 
     print("\nVALIDATION set: -------------------------------------------------------")
@@ -375,6 +375,10 @@ def main():
     print("\nTRAIN set: ------------------------------------------------------------")
     train_df = pd.read_csv('../train_df_m-eurosat.csv')
     print(train_df.head())
+
+    path_prefix = "/content/drive/MyDrive/Thesis CLIP4EO/GEO-Bench classification data/m-eurosat/"
+    for df in [train_df, val_df, test_df]:
+        df["filename"] = df["filename"].str.replace(path_prefix, data_path, regex=False)
 
 
     # Extract band stats for normalization
