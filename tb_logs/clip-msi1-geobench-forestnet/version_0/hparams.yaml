@@ -1,0 +1,15 @@
+class_names:
+- Fish pond
+- Grassland shrubland
+- Logging
+- Mining
+- Oil palm plantation
+- Other
+- Other large-scale plantations
+- Secondary forest
+- Small-scale agriculture
+- Small-scale mixed plantation
+- Small-scale oil palm plantation
+- Timber plantation
+in_channels: 6
+learning_rate: 0.001
