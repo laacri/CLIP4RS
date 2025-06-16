@@ -14,8 +14,6 @@ import h5py
 import json
 import pickle
 import clip
-import re
-from collections import defaultdict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -35,7 +33,7 @@ torch._dynamo.config.suppress_errors = True
 warnings.filterwarnings("ignore")
 
 
-data_path = '../m-forestnet/' # the script will run inside the thesis/ folder
+data_path = '../m-so2sat/' # the script will run inside the thesis/ folder
 checkpoint_dir = './checkpoints/'
 log_dir = './logs/'
 tb_log_dir = './tb_logs/'
@@ -44,65 +42,66 @@ num_workers = 4
 learning_rate = 1e-3 #5e-3
 
 
-forestnet_labels = ['Oil palm plantation',
-                    'Timber plantation',
-                    'Other large-scale plantations',
-                    'Grassland shrubland',
-                    'Small-scale agriculture',
-                    'Small-scale mixed plantation',
-                    'Small-scale oil palm plantation',
-                    'Mining',
-                    'Fish pond',
-                    'Logging',
-                    'Secondary forest',
-                    'Other']
-n_bands = 6
+so2sat_labels = ['Compact high rise',
+                  'Compact mid rise',
+                  'Compact low rise',
+                  'Open high rise',
+                  'Open mid rise',
+                  'Open low rise',
+                  'Lightweight low rise',
+                  'Large low rise',
+                  'Sparsely built',
+                  'Heavy industry',
+                  'Dense trees',
+                  'Scattered trees',
+                  'Bush, scrub',
+                  'Low plants',
+                  'Bare rock or paved',
+                  'Bare soil or sand',
+                  'Water']
+n_bands = 18
 
 
 # Normalization function
-def compute_band_stats_variable_names(df):
-    ''' 
-    Compute mean and std using two-pass method for datasets 
-    where band names include varying timestamps.
-    '''
-    band_sum = defaultdict(float)
-    band_sq_diff_sum = defaultdict(float)
-    band_pixel_counts = defaultdict(int)
+def compute_band_stats_up(df, bands):
+    ''' Compute mean and std using two-pass definition-based method. '''
+    n_bands = len(bands)
+    band_pixel_counts = np.zeros(n_bands, dtype=np.int64)
+    band_sum = np.zeros(n_bands, dtype=np.float64)
 
     # First pass: compute mean
     for filename in df['filename']:
         try:
             with h5py.File(filename, 'r') as f:
-                for b in f.keys():
-                    base_band = re.sub(r'_\d{4}-\d{2}-\d{2}', '', b)  # strip date
+                for i, b in enumerate(bands):
                     band = f[b][:]
-                    band_sum[base_band] += band.sum()
-                    band_pixel_counts[base_band] += band.size
+                    band_sum[i] += band.sum()
+                    band_pixel_counts[i] += band.size
         except Exception as e:
             print(f"Failed reading {filename}: {e}")
 
-    band_means = {k: band_sum[k] / band_pixel_counts[k] for k in band_sum}
+    band_means = band_sum / band_pixel_counts
 
     # Second pass: compute variance
+    band_sq_diff_sum = np.zeros(n_bands, dtype=np.float64)
     for filename in df['filename']:
         try:
             with h5py.File(filename, 'r') as f:
-                for b in f.keys():
-                    base_band = re.sub(r'_\d{4}-\d{2}-\d{2}', '', b)
+                for i, b in enumerate(bands):
                     band = f[b][:]
-                    diff = band - band_means[base_band]
-                    band_sq_diff_sum[base_band] += np.square(diff).sum()
+                    diff = band - band_means[i]
+                    band_sq_diff_sum[i] += np.square(diff).sum()
         except Exception as e:
             print(f"Failed reading {filename}: {e}")
 
-    band_vars = {k: band_sq_diff_sum[k] / band_pixel_counts[k] for k in band_sum}
-    band_stds = {k: np.sqrt(v) for k, v in band_vars.items()}
+    band_vars = band_sq_diff_sum / band_pixel_counts
+    band_stds = np.sqrt(band_vars)
 
     band_stats = pd.DataFrame({
-        'Band': list(band_means.keys()),
-        'Mean': [band_means[k] for k in band_means],
-        'Std': [band_stds[k] for k in band_means],
-        'Pixels': [band_pixel_counts[k] for k in band_means]
+        'Band': bands,
+        'Mean': band_means,
+        'Std': band_stds,
+        'Pixels': band_pixel_counts
     })
 
     return band_stats
@@ -126,9 +125,7 @@ class GEOBenchMSIDataset(Dataset):
             bands = []
             for i, band_name in enumerate(f.keys()):
                 band = f[band_name][:]
-                # stats = self.band_stats[band_name]
-                base_band = re.sub(r'_\d{4}-\d{2}-\d{2}', '', band_name)
-                stats = self.band_stats[base_band]
+                stats = self.band_stats[band_name]
                 band = (band - stats["mean"]) / stats["std"]
                 bands.append(band)
         
@@ -368,76 +365,50 @@ def main():
     # Read default partition
     with open(os.path.join(images_path, 'default_partition.json'), 'r') as file:
         def_partition = json.load(file)
-        print("Splits:")
+        print("\nSplits:")
         print(list(def_partition.keys()))
         print(len(def_partition['train']), len(def_partition['valid']), len(def_partition['test']))
 
-    # Read label map
-    with open(os.path.join(images_path, 'label_map.json'), 'r') as file:
-        label_map = json.load(file)
-        # labels == {'0': [id1, id2, ...], '1': [id4, id5, ...], ..., '11': [id34, id56, ...]}
-
-    # Reverse the label map: image_id -> label
-    image_to_label_map = {}
-    for label, image_list in label_map.items():
-        for img_id in image_list:
-            image_to_label_map[img_id] = forestnet_labels[int(label)]
-
-
-    # Building TEST dataframe ------------------------------------------------------
+    # Read test, val and train dataframe from files
     print("\nTEST set: -------------------------------------------------------------")
-    data = []
-    split = 'test'
-    for img_id in def_partition[split]:
-        label = image_to_label_map.get(img_id, None)  # None in case any image is missing in label_map
-        data.append({
-            'image_id': img_id,
-            'filename': os.path.join(images_path, img_id + '.hdf5'),
-            'bands': n_bands,
-            'split': split,
-            'label': label
-        })
-
-    test_df = pd.DataFrame(data)
+    test_df = pd.read_csv('../test_df_m-so2sat.csv')
     print(test_df.head())
 
-    # Building VALIDATION dataframe ------------------------------------------------
     print("\nVALIDATION set: -------------------------------------------------------")
-    data = []
-    split = 'valid'
-    for img_id in def_partition[split]:
-        label = image_to_label_map.get(img_id, None)  # None in case any image is missing in label_map
-        data.append({
-            'image_id': img_id,
-            'filename': os.path.join(images_path, img_id + '.hdf5'),
-            'bands': n_bands,
-            'split': split,
-            'label': label
-        })
-
-    val_df = pd.DataFrame(data)
+    val_df = pd.read_csv('../val_df_m-so2sat.csv')
     print(val_df.head())
 
-    # Building TRAIN dataframe -----------------------------------------------------
     print("\nTRAIN set: ------------------------------------------------------------")
-    data = []
-    split = 'train'
-    for img_id in def_partition[split]:
-        label = image_to_label_map.get(img_id, None)  # None in case any image is missing in label_map
-        data.append({
-            'image_id': img_id,
-            'filename': os.path.join(images_path, img_id + '.hdf5'),
-            'bands': n_bands,
-            'split': split,
-            'label': label
-        })
-
-    train_df = pd.DataFrame(data)
+    train_df = pd.read_csv('../train_df_m-so2sat.csv')
     print(train_df.head())
+
+    path_prefix = "/content/drive/MyDrive/Thesis CLIP4EO/GEO-Bench classification data/m-so2sat/"
+    for df in [train_df, val_df, test_df]:
+        df["filename"] = df["filename"].str.replace(path_prefix, data_path, regex=False)
 
 
     # Extract band stats for normalization
-    band_stats = compute_band_stats_variable_names(train_df) # use training set for normalization
+    bands = ['01 - VH.Real',
+            '02 - Blue',
+            '02 - VH.Imaginary',
+            '03 - Green',
+            '03 - VV.Real',
+            '04 - Red',
+            '04 - VV.Imaginary',
+            '05 - VH.LEE Filtered',
+            '05 - Vegetation Red Edge',
+            '06 - VV.LEE Filtered',
+            '06 - Vegetation Red Edge',
+            '07 - VH.LEE Filtered.Real',
+            '07 - Vegetation Red Edge',
+            '08 - NIR',
+            '08 - VV.LEE Filtered.Imaginary',
+            '08A - Vegetation Red Edge',
+            '11 - SWIR',
+            '12 - SWIR']
+
+
+    band_stats = compute_band_stats_up(train_df, bands)
     stats_dict = {f"{row['Band']}": {
                     "mean": row["Mean"],
                     "std": row["Std"]}
@@ -449,7 +420,7 @@ def main():
     # 1. Encode string labels into integers
     le = LabelEncoder()
     le.fit(train_df["label"])
-    label2idx = {label: idx for idx, label in enumerate(le.classes_)} 
+    label2idx = {label: idx for idx, label in enumerate(le.classes_)}
     class_names = list(label2idx.keys())
 
     # 2. Load data module
@@ -460,11 +431,11 @@ def main():
     class_weights = {label2idx[label]: total / count for label, count in class_counts.items()}
     norm_factor = sum(class_weights.values()) # normalize for stability
     class_weights = {k: v / norm_factor for k, v in class_weights.items()}
-    # {0: 0.15354663958015913, 1: 0.8464533604198409}
+    # {0: 0.058, 1: 0.058, 2: 0.058, ...} the dataset is balanced
 
     # Convert to tensor for use in model
     weights_tensor = torch.tensor([class_weights[i] for i in range(len(class_weights))], dtype=torch.float32)
-    # tensor([0.1535, 0.8465])
+    # tensor([0.58, 0.58, 0.58, ...]) the dataset is balanced
 
     # 3. Create the model -- edit for binary classification
     if args.model == 1:
@@ -478,7 +449,7 @@ def main():
         # 4. Specify a checkpoint callback
         checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
             dirpath=checkpoint_dir,
-            filename="clip-msi1-geobench-forestnet-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
+            filename="clip-msi1-geobench-so2sat-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
             save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
             monitor="val_acc",
             mode="max",
@@ -486,10 +457,10 @@ def main():
         )
 
         # # 5. Specify logger in csv format
-        logger = CSVLogger(save_dir=log_dir, name="clip-msi1-geobench-forestnet")
+        logger = CSVLogger(save_dir=log_dir, name="clip-msi1-geobench-so2sat")
 
         # define the logger object
-        logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi1-geobench-forestnet", log_graph = True)
+        logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi1-geobench-so2sat", log_graph = True)
 
     elif args.model == 2:
         model = CLIPWithMSIEmbedder2(
@@ -502,7 +473,7 @@ def main():
         # 4. Specify a checkpoint callback
         checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
             dirpath=checkpoint_dir,
-            filename="clip-msi2-geobench-forestnet-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
+            filename="clip-msi2-geobench-so2sat-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
             save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
             monitor="val_acc",
             mode="max",
@@ -510,10 +481,10 @@ def main():
         )
 
         # # 5. Specify logger in csv format
-        logger = CSVLogger(log_dir, name="clip-msi2-geobench-forestnet")
+        logger = CSVLogger(log_dir, name="clip-msi2-geobench-so2sat")
 
         # define the logger object
-        logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi2-geobench-forestnet", log_graph = True)
+        logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi2-geobench-so2sat", log_graph = True)
 
     else:
         raise ValueError("Unsupported model type. Choose --model 1 or 2.")

@@ -396,7 +396,7 @@ def main():
             '11 - SWIR',
             '12 - SWIR']
 
-    band_stats = compute_band_stats_up(val_df.head(100), bands)
+    band_stats = compute_band_stats_up(train_df, bands)
     stats_dict = {f"{row['Band']}": {
                     "mean": row["Mean"],
                     "std": row["Std"]}
