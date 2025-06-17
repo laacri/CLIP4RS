@@ -22,6 +22,7 @@ from torch.optim import Adam
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as T
 from torchmetrics.classification import MultilabelAveragePrecision
+from torchmetrics.classification import MultilabelAccuracy, MultilabelRankingAveragePrecision
 import lightning as L
 from lightning import Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint
@@ -224,6 +225,14 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
         self.val_map = MultilabelAveragePrecision(num_labels=self.num_classes, average='macro')
         self.test_map = MultilabelAveragePrecision(num_labels=self.num_classes, average='macro')
 
+        self.train_acc = MultilabelAccuracy(num_labels=num_classes, threshold=0.5)
+        self.val_acc = MultilabelAccuracy(num_labels=num_classes, threshold=0.5)
+        self.test_acc = MultilabelAccuracy(num_labels=num_classes, threshold=0.5)
+
+        self.train_lrap = MultilabelRankingAveragePrecision(num_labels=num_classes)
+        self.val_lrap = MultilabelRankingAveragePrecision(num_labels=num_classes)
+        self.test_lrap = MultilabelRankingAveragePrecision(num_labels=num_classes)
+
         # Load CLIP
         self.clip_model, _ = clip.load("ViT-B/32", device=device, download_root=os.path.expanduser("~/.cache/clip"))
         # _ is because we can't use clip preprocess, as it outputs a tensor
@@ -273,13 +282,19 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
         loss = F.binary_cross_entropy_with_logits(logits, y)
         probs = torch.sigmoid(logits)
         self.train_map.update(probs, y.int())
+        self.train_acc.update(probs, y.int())
+        self.train_lrap.update(probs, y)
         self.log("train_loss", loss, on_step=False, on_epoch=True)
         return loss
     
     def on_train_epoch_end(self):
         map_score = self.train_map.compute()
         self.log("train_mAP", map_score)
+        self.log("train_acc", self.train_acc.compute())
+        self.log("train_LRAP", self.train_lrap.compute())
         self.train_map.reset()
+        self.train_acc.reset()
+        self.train_lrap.reset()
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
@@ -287,13 +302,19 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
         loss = F.binary_cross_entropy_with_logits(logits, y)
         probs = torch.sigmoid(logits)
         self.val_map.update(probs, y.int())
+        self.val_acc.update(probs, y.int())
+        self.val_lrap.update(probs, y)
         self.log("val_loss", loss, on_step=False, on_epoch=True)
         return loss
     
     def on_validation_epoch_end(self):
         map_score = self.val_map.compute()
         self.log("val_mAP", map_score)
+        self.log("val_acc", self.val_acc.compute())
+        self.log("val_LRAP", self.val_lrap.compute())
         self.val_map.reset()
+        self.val_acc.reset()
+        self.val_lrap.reset()
     
     def test_step(self, batch, batch_idx):
         x, y = batch
@@ -301,13 +322,19 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
         loss = F.binary_cross_entropy_with_logits(logits, y)
         probs = torch.sigmoid(logits)
         self.test_map.update(probs, y.int())
+        self.test_acc.update(probs, y.int())
+        self.test_lrap.update(probs, y)
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         return loss
     
     def on_test_epoch_end(self):
         map_score = self.test_map.compute()
         self.log("test_mAP", map_score)
+        self.log("test_acc", self.val_acc.compute())
+        self.log("test_LRAP", self.val_lrap.compute())
         self.test_map.reset()
+        self.test_acc.reset()
+        self.test_lrap.reset()
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.embedder.parameters(), lr=self.learning_rate)
@@ -372,13 +399,19 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
         loss = F.binary_cross_entropy_with_logits(logits, y)
         probs = torch.sigmoid(logits)
         self.train_map.update(probs, y.int())
+        self.train_acc.update(probs, y.int())
+        self.train_lrap.update(probs, y)
         self.log("train_loss", loss, on_step=False, on_epoch=True)
         return loss
     
     def on_train_epoch_end(self):
         map_score = self.train_map.compute()
         self.log("train_mAP", map_score)
+        self.log("train_acc", self.train_acc.compute())
+        self.log("train_LRAP", self.train_lrap.compute())
         self.train_map.reset()
+        self.train_acc.reset()
+        self.train_lrap.reset()
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
@@ -386,13 +419,19 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
         loss = F.binary_cross_entropy_with_logits(logits, y)
         probs = torch.sigmoid(logits)
         self.val_map.update(probs, y.int())
+        self.val_acc.update(probs, y.int())
+        self.val_lrap.update(probs, y)
         self.log("val_loss", loss, on_step=False, on_epoch=True)
         return loss
     
     def on_validation_epoch_end(self):
         map_score = self.val_map.compute()
         self.log("val_mAP", map_score)
+        self.log("val_acc", self.val_acc.compute())
+        self.log("val_LRAP", self.val_lrap.compute())
         self.val_map.reset()
+        self.val_acc.reset()
+        self.val_lrap.reset()
     
     def test_step(self, batch, batch_idx):
         x, y = batch
@@ -400,13 +439,19 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
         loss = F.binary_cross_entropy_with_logits(logits, y)
         probs = torch.sigmoid(logits)
         self.test_map.update(probs, y.int())
+        self.test_acc.update(probs, y.int())
+        self.test_lrap.update(probs, y)
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         return loss
     
     def on_test_epoch_end(self):
         map_score = self.test_map.compute()
         self.log("test_mAP", map_score)
+        self.log("test_acc", self.val_acc.compute())
+        self.log("test_LRAP", self.val_lrap.compute())
         self.test_map.reset()
+        self.test_acc.reset()
+        self.test_lrap.reset()
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.embedder.parameters(), lr=self.learning_rate)
