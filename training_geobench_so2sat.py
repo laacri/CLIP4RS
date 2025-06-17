@@ -32,7 +32,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 torch._dynamo.config.suppress_errors = True
 warnings.filterwarnings("ignore")
 
-torch.set_float32_matmul_precision('medium' | 'high')
+#torch.set_float32_matmul_precision('medium' | 'high')
 
 data_path = '../m-so2sat/' # the script will run inside the thesis/ folder
 checkpoint_dir = './checkpoints/'
