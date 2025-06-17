@@ -217,7 +217,7 @@ class MSIEmbedder2(nn.Module):
 
 
 class CLIPWithMSIEmbedder1(L.LightningModule):
-    def __init__(self, in_channels, num_classes, class_names, learning_rate):
+    def __init__(self, in_channels, num_classes, class_names, learning_rate, pos_weight):
         super().__init__()
         # Instantiate mAP metrics for each stage
         self.num_classes = num_classes
@@ -264,6 +264,8 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
                         (0.26862954, 0.26130258, 0.27577711))
         ])
 
+        self.loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+
     def forward(self, x):
         x = self.embedder(x)  # [B, 3, 64, 64]
         x = self.MSI_to_CLIP_preprocess(x)
@@ -279,7 +281,7 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits = self.predict_logits(x)
-        loss = F.binary_cross_entropy_with_logits(logits, y)
+        loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
         self.train_map.update(probs, y.int())
         self.train_acc.update(probs, y.int())
@@ -299,7 +301,7 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         logits = self.predict_logits(x)
-        loss = F.binary_cross_entropy_with_logits(logits, y)
+        loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
         self.val_map.update(probs, y.int())
         self.val_acc.update(probs, y.int())
@@ -319,7 +321,7 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self.predict_logits(x)
-        loss = F.binary_cross_entropy_with_logits(logits, y)
+        loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
         self.test_map.update(probs, y.int())
         self.test_acc.update(probs, y.int())
@@ -341,7 +343,7 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
     
 
 class CLIPWithMSIEmbedder2(L.LightningModule):
-    def __init__(self, in_channels, num_classes, class_names, learning_rate):
+    def __init__(self, in_channels, num_classes, class_names, learning_rate, pos_weight):
         super().__init__()
         # Instantiate mAP metrics for each stage
         self.num_classes = num_classes
@@ -381,6 +383,8 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
                         (0.26862954, 0.26130258, 0.27577711))
         ])
 
+        self.loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+
     def forward(self, x):
         x = self.embedder(x)  # [B, 3, 64, 64]
         x = self.MSI_to_CLIP_preprocess(x)
@@ -396,7 +400,7 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits = self.predict_logits(x)
-        loss = F.binary_cross_entropy_with_logits(logits, y)
+        loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
         self.train_map.update(probs, y.int())
         self.train_acc.update(probs, y.int())
@@ -416,7 +420,7 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         logits = self.predict_logits(x)
-        loss = F.binary_cross_entropy_with_logits(logits, y)
+        loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
         self.val_map.update(probs, y.int())
         self.val_acc.update(probs, y.int())
@@ -436,7 +440,7 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self.predict_logits(x)
-        loss = F.binary_cross_entropy_with_logits(logits, y)
+        loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
         self.test_map.update(probs, y.int())
         self.test_acc.update(probs, y.int())
@@ -563,8 +567,27 @@ def main():
                 for _, row in band_stats.iterrows()}
 
     print(stats_dict)
-    
 
+
+    # Computing weights for labels based on frequency
+    all_vectors = np.stack(train_df["ground_truth_binary_vector"].values)
+    label_freq = all_vectors.sum(axis=0)
+    label_pos_ratio = label_freq / len(train_df)
+
+    # Print number of positive examples per class
+    for idx, (label, count, ratio) in enumerate(zip(bigearthnet_labels, label_freq, label_pos_ratio)):
+        print(f"{idx:2d} - {label:<60} | Positives: {int(count):5d} | Ratio: {ratio:.4f}")
+
+    # Total number of samples
+    num_samples = len(train_df)
+
+    # Number of positives per class
+    pos_counts = label_freq
+    neg_counts = num_samples - pos_counts
+
+    # Avoid divide-by-zero
+    pos_weight = torch.tensor(neg_counts / (pos_counts + 1e-6), dtype=torch.float32).to(device)
+        
     # # 1. Encode string labels into integers
     # le = LabelEncoder()
     # le.fit(train_df["label"])
@@ -592,6 +615,7 @@ def main():
             num_classes = len(bigearthnet_labels),
             class_names = bigearthnet_labels,
             learning_rate = learning_rate,
+            pos_weight = pos_weight
         )
 
         # 4. Specify a checkpoint callback
@@ -616,6 +640,7 @@ def main():
             num_classes = len(bigearthnet_labels),
             class_names = bigearthnet_labels,
             learning_rate = learning_rate,
+            pos_weight = pos_weight
         )
 
         # 4. Specify a checkpoint callback
