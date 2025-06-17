@@ -542,7 +542,7 @@ def main():
 
     # 3. Create the model -- edit for binary classification
     if args.model == 1:
-        model_1 = CLIPWithMSIEmbedder1(
+        model = CLIPWithMSIEmbedder1(
             in_channels = n_bands,
             num_classes = len(bigearthnet_labels),
             class_names = bigearthnet_labels,
