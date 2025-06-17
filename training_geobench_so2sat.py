@@ -126,7 +126,7 @@ class GEOBenchMSIDataset(Dataset):
             for i, band_name in enumerate(f.keys()):
                 band = f[band_name][:]
                 stats = self.band_stats[band_name]
-                band = (band - stats["mean"]) / stats["std"]
+                band = (band - stats["mean"]) / (stats["std"] + 1e-6) # add epsilon for numerical stability
                 bands.append(band)
         
         img = np.stack(bands, axis=0)  # shape: [C, H, W] -> [13, 64, 64]
@@ -496,6 +496,7 @@ def main():
         accelerator="auto",
         devices=1,
         precision = 32,
+        gradient_clip_val=1.0,
         #amp_backend=None,
         #precision="16-mixed", # enable AMP (Automatic Mixed Precision) # -> error after first epoch
         log_every_n_steps=5,
