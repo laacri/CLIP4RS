@@ -32,6 +32,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 torch._dynamo.config.suppress_errors = True
 warnings.filterwarnings("ignore")
 
+torch.set_float32_matmul_precision('medium' | 'high')
 
 data_path = '../m-so2sat/' # the script will run inside the thesis/ folder
 checkpoint_dir = './checkpoints/'
@@ -109,10 +110,11 @@ def compute_band_stats_up(df, bands):
 
 # Dataset and DataModule class
 class GEOBenchMSIDataset(Dataset):
-    def __init__(self, dataframe, label2idx, band_stats):
+    def __init__(self, dataframe, label2idx, band_stats, selected_bands):
         self.df = dataframe.reset_index(drop=True)
         self.label2idx = label2idx
-        self.band_stats = band_stats  # needed for normalization with train_df band stats
+        self.band_stats = band_stats
+        self.selected_bands = selected_bands  # nuova variabile
 
     def __len__(self):
         return len(self.df)
@@ -122,21 +124,23 @@ class GEOBenchMSIDataset(Dataset):
         label = self.label2idx[self.df.loc[idx, "label"]]
 
         with h5py.File(img_path, 'r') as f:
-            bands = []
-            for i, band_name in enumerate(f.keys()):
-                band = f[band_name][:]
-                stats = self.band_stats[band_name]
-                band = (band - stats["mean"]) / (stats["std"] + 1e-6) # add epsilon for numerical stability
-                bands.append(band)
-        
-        img = np.stack(bands, axis=0)  # shape: [C, H, W] -> [13, 64, 64]
-        img = torch.tensor(img, dtype=torch.float32)
+            band_data = []
+            for band_name in self.selected_bands:
+                if band_name in f.keys():
+                    band = f[band_name][:]
+                    stats = self.band_stats[band_name]
+                    band = (band - stats["mean"]) / (stats["std"] + 1e-6)
+                    band_data.append(band)
+                else:
+                    raise KeyError(f"Banda {band_name} non trovata nel file {img_path}")
 
+        img = np.stack(band_data, axis=0)  # [C, H, W]
+        img = torch.tensor(img, dtype=torch.float32)
         return img, label
 
-    
+
 class GEOBenchMSIDataModule(L.LightningDataModule):
-    def __init__(self, train_df, val_df, test_df, label2idx, band_stats, batch_size):
+    def __init__(self, train_df, val_df, test_df, label2idx, band_stats, batch_size, selected_bands):
         super().__init__()
         self.train_df = train_df
         self.val_df = val_df
@@ -144,11 +148,12 @@ class GEOBenchMSIDataModule(L.LightningDataModule):
         self.label2idx = label2idx
         self.band_stats = band_stats # train_df band stats
         self.batch_size = batch_size
+        self.selected_bands = selected_bands
 
     def setup(self, stage=None):
-        self.train_dataset = GEOBenchMSIDataset(self.train_df, self.label2idx, self.band_stats)
-        self.val_dataset   = GEOBenchMSIDataset(self.val_df, self.label2idx, self.band_stats)
-        self.test_dataset  = GEOBenchMSIDataset(self.test_df, self.label2idx, self.band_stats)
+        self.train_dataset = GEOBenchMSIDataset(self.train_df, self.label2idx, self.band_stats, self.selected_bands)
+        self.val_dataset   = GEOBenchMSIDataset(self.val_df, self.label2idx, self.band_stats, self.selected_bands)
+        self.test_dataset  = GEOBenchMSIDataset(self.test_df, self.label2idx, self.band_stats, self.selected_bands)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=num_workers, pin_memory=(device == 'cuda'))
@@ -158,8 +163,8 @@ class GEOBenchMSIDataModule(L.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=num_workers, pin_memory=(device == 'cuda'))
-
-
+    
+    
 class MSIEmbedder1(nn.Module):
     def __init__(self, in_channels: int):
         super(MSIEmbedder1, self).__init__()
@@ -388,27 +393,27 @@ def main():
 
 
     # Extract band stats for normalization
-    bands = ['01 - VH.Real',
+    selected_bands = [#'01 - VH.Real',
             '02 - Blue',
-            '02 - VH.Imaginary',
+            #'02 - VH.Imaginary',
             '03 - Green',
-            '03 - VV.Real',
+            #'03 - VV.Real',
             '04 - Red',
-            '04 - VV.Imaginary',
+            #'04 - VV.Imaginary',
             '05 - VH.LEE Filtered',
             '05 - Vegetation Red Edge',
             '06 - VV.LEE Filtered',
             '06 - Vegetation Red Edge',
-            '07 - VH.LEE Filtered.Real',
+            #'07 - VH.LEE Filtered.Real',
             '07 - Vegetation Red Edge',
             '08 - NIR',
-            '08 - VV.LEE Filtered.Imaginary',
+            #'08 - VV.LEE Filtered.Imaginary',
             '08A - Vegetation Red Edge',
             '11 - SWIR',
             '12 - SWIR']
 
 
-    band_stats = compute_band_stats_up(train_df, bands)
+    band_stats = compute_band_stats_up(train_df, selected_bands)
     stats_dict = {f"{row['Band']}": {
                     "mean": row["Mean"],
                     "std": row["Std"]}
@@ -440,7 +445,7 @@ def main():
     # 3. Create the model -- edit for binary classification
     if args.model == 1:
         model = CLIPWithMSIEmbedder1(
-            in_channels = n_bands,
+            in_channels = len(selected_bands),
             class_names = class_names,
             learning_rate = learning_rate,
             class_weights = weights_tensor
@@ -464,7 +469,7 @@ def main():
 
     elif args.model == 2:
         model = CLIPWithMSIEmbedder2(
-            in_channels = n_bands,
+            in_channels = len(selected_bands),
             class_names = class_names,
             learning_rate = learning_rate,
             class_weights = weights_tensor
