@@ -429,7 +429,7 @@ def main():
     class_names = list(label2idx.keys())
 
     # 2. Load data module
-    data_module = GEOBenchMSIDataModule(train_df, val_df, test_df, label2idx, stats_dict, batch_size)
+    data_module = GEOBenchMSIDataModule(train_df, val_df, test_df, label2idx, stats_dict, batch_size, selected_bands)
 
     class_counts = train_df['label'].value_counts()
     total = sum(class_counts)
