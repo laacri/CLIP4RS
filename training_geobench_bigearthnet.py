@@ -283,17 +283,17 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
         logits = self.predict_logits(x)
         loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
-        self.train_map.update(probs, y)
+        self.train_map.update(probs, y.int())
         # self.train_acc.update(probs, y)
         # self.train_lrap.update(probs, y)
         self.log("train_loss", loss, on_step=False, on_epoch=True)
-        self.log("logits_mean", logits.mean())
-        self.log("probs_std", probs.std())
+        self.log("logits_mean", logits.mean(), on_step=False, on_epoch=True)
+        self.log("probs_std", probs.std(), on_step=False, on_epoch=True)
         return loss
     
     def on_train_epoch_end(self):
         map_score = self.train_map.compute()
-        self.log("train_mAP", map_score)
+        self.log("train_mAP", map_score, on_step=False, on_epoch=True)
         # self.log("train_acc", self.train_acc.compute())
         # self.log("train_LRAP", self.train_lrap.compute())
         self.train_map.reset()
@@ -305,7 +305,7 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
         logits = self.predict_logits(x)
         loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
-        self.val_map.update(probs, y)
+        self.val_map.update(probs, y.int())
         # self.val_acc.update(probs, y)
         # self.val_lrap.update(probs, y)
         self.log("val_loss", loss, on_step=False, on_epoch=True)
@@ -313,7 +313,7 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
     
     def on_validation_epoch_end(self):
         map_score = self.val_map.compute()
-        self.log("val_mAP", map_score)
+        self.log("val_mAP", map_score, on_step=False, on_epoch=True)
         # self.log("val_acc", self.val_acc.compute())
         # self.log("val_LRAP", self.val_lrap.compute())
         self.val_map.reset()
@@ -325,7 +325,7 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
         logits = self.predict_logits(x)
         loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
-        self.test_map.update(probs, y)
+        self.test_map.update(probs, y.int())
         # self.test_acc.update(probs, y)
         # self.test_lrap.update(probs, y)
         self.log("test_loss", loss, on_step=False, on_epoch=True)
@@ -333,7 +333,7 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
     
     def on_test_epoch_end(self):
         map_score = self.test_map.compute()
-        self.log("test_mAP", map_score)
+        self.log("test_mAP", map_score, on_step=False, on_epoch=True)
         # self.log("test_acc", self.test_acc.compute())
         # self.log("test_LRAP", self.test_lrap.compute())
         self.test_map.reset()
@@ -404,17 +404,17 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
         logits = self.predict_logits(x)
         loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
-        self.train_map.update(probs, y)
+        self.train_map.update(probs, y.int())
         # self.train_acc.update(probs, y)
         # self.train_lrap.update(probs, y)
         self.log("train_loss", loss, on_step=False, on_epoch=True)
-        self.log("logits_mean", logits.mean())
-        self.log("probs_std", probs.std())
+        self.log("logits_mean", logits.mean(), on_step=False, on_epoch=True)
+        self.log("probs_std", probs.std(), on_step=False, on_epoch=True)
         return loss
     
     def on_train_epoch_end(self):
         map_score = self.train_map.compute()
-        self.log("train_mAP", map_score)
+        self.log("train_mAP", map_score, on_step=False, on_epoch=True)
         # self.log("train_acc", self.train_acc.compute())
         # self.log("train_LRAP", self.train_lrap.compute())
         self.train_map.reset()
@@ -426,7 +426,7 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
         logits = self.predict_logits(x)
         loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
-        self.val_map.update(probs, y)
+        self.val_map.update(probs, y.int())
         # self.val_acc.update(probs, y)
         # self.val_lrap.update(probs, y)
         self.log("val_loss", loss, on_step=False, on_epoch=True)
@@ -434,7 +434,7 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
     
     def on_validation_epoch_end(self):
         map_score = self.val_map.compute()
-        self.log("val_mAP", map_score)
+        self.log("val_mAP", map_score, on_step=False, on_epoch=True)
         # self.log("val_acc", self.val_acc.compute())
         # self.log("val_LRAP", self.val_lrap.compute())
         self.val_map.reset()
@@ -446,17 +446,17 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
         logits = self.predict_logits(x)
         loss = self.loss_fn(logits, y)
         probs = torch.sigmoid(logits)
-        self.test_map.update(probs, y)
+        self.test_map.update(probs, y.int())
         # self.test_acc.update(probs, y)
         # self.test_lrap.update(probs, y)
         self.log("test_loss", loss, on_step=False, on_epoch=True)
-        self.log("logits_mean", logits.mean())
-        self.log("probs_std", probs.std())
+        self.log("logits_mean", logits.mean(), on_step=False, on_epoch=True)
+        self.log("probs_std", probs.std(), on_step=False, on_epoch=True)
         return loss
     
     def on_test_epoch_end(self):
         map_score = self.test_map.compute()
-        self.log("test_mAP", map_score)
+        self.log("test_mAP", map_score, on_step=False, on_epoch=True)
         # self.log("test_acc", self.test_acc.compute())
         # self.log("test_LRAP", self.test_lrap.compute())
         self.test_map.reset()
