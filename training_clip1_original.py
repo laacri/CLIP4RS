@@ -40,7 +40,6 @@ num_workers = 4
 learning_rate = 5e-3 #1e-3
 
 # Loading and mapping labels
-# (in order to correspond to the ones in m-bigearthnet from GEO-Bench)
 labels_map = {'SeaLake' : 'Sea or Lake',
               'Pasture': 'Pasture',
               'PermanentCrop': 'Permanent Crop',

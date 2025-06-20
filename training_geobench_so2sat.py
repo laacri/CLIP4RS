@@ -60,7 +60,7 @@ so2sat_labels = ['Compact high rise',
                   'Bare rock or paved',
                   'Bare soil or sand',
                   'Water']
-n_bands = 18
+#n_bands = 18
 
 
 # Normalization function
@@ -394,23 +394,23 @@ def main():
 
     # Extract band stats for normalization
     selected_bands = [#'01 - VH.Real',
-            '02 - Blue',
-            #'02 - VH.Imaginary',
-            '03 - Green',
-            #'03 - VV.Real',
-            '04 - Red',
-            #'04 - VV.Imaginary',
-            '05 - VH.LEE Filtered',
-            '05 - Vegetation Red Edge',
-            '06 - VV.LEE Filtered',
-            '06 - Vegetation Red Edge',
-            #'07 - VH.LEE Filtered.Real',
-            '07 - Vegetation Red Edge',
-            '08 - NIR',
-            #'08 - VV.LEE Filtered.Imaginary',
-            '08A - Vegetation Red Edge',
-            '11 - SWIR',
-            '12 - SWIR']
+                      '02 - Blue',
+                      #'02 - VH.Imaginary',
+                      '03 - Green',
+                      #'03 - VV.Real',
+                      '04 - Red',
+                      #'04 - VV.Imaginary',
+                      '05 - VH.LEE Filtered',
+                      '05 - Vegetation Red Edge',
+                      '06 - VV.LEE Filtered',
+                      '06 - Vegetation Red Edge',
+                      #'07 - VH.LEE Filtered.Real',
+                      '07 - Vegetation Red Edge',
+                      '08 - NIR',
+                      #'08 - VV.LEE Filtered.Imaginary',
+                      '08A - Vegetation Red Edge',
+                      '11 - SWIR',
+                      '12 - SWIR']
 
 
     band_stats = compute_band_stats_up(train_df, selected_bands)
