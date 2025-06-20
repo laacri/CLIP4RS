@@ -1,0 +1,70 @@
+Running on nodes: lrdn0075
+Arguments passed: 100 1
+/leonardo/home/userexternal/cditulli/thesis
+total 204
+drwxr-xr-x  2 cditulli interactive  4096 Jun 17 12:10 checkpoints
+-rw-r--r--  1 cditulli interactive    47 Jun 12 15:53 clip_download.py
+drwxr-xr-x 15 cditulli interactive  4096 Jun 17 12:09 logs
+-rw-r--r--  1 cditulli interactive     8 Jun 11 17:57 README.md
+-rw-r--r--  1 cditulli interactive   237 Jun 15 19:03 requirements.txt
+drwxr-xr-x  2 cditulli interactive  4096 Jun 17 13:39 sout
+drwxr-xr-x 15 cditulli interactive  4096 Jun 17 12:09 tb_logs
+-rw-r--r--  1 cditulli interactive   701 Jun 14 14:31 training1.sh
+-rw-r--r--  1 cditulli interactive   701 Jun 14 14:31 training2.sh
+-rw-r--r--  1 cditulli interactive 12405 Jun 14 15:20 training_clip1_original.py
+-rw-r--r--  1 cditulli interactive 12529 Jun 14 15:20 training_clip2_original.py
+-rw-r--r--  1 cditulli interactive  9609 Jun 14 12:30 training_clip_msi1.py
+-rw-r--r--  1 cditulli interactive 12141 Jun 14 12:30 training_clip_msi2.py
+-rw-r--r--  1 cditulli interactive 20643 Jun 16 12:13 training_geobench_brick.py
+-rw-r--r--  1 cditulli interactive 19453 Jun 17 01:22 training_geobench_eurosat.py
+-rw-r--r--  1 cditulli interactive 21258 Jun 17 01:22 training_geobench_forestnet.py
+-rw-r--r--  1 cditulli interactive 20457 Jun 16 12:21 training_geobench_pv4ger.py
+-rw-r--r--  1 cditulli interactive  1281 Jun 17 01:22 training_geobench.sh
+-rw-r--r--  1 cditulli interactive 20340 Jun 17 13:37 training_geobench_so2sat.py
+Traceback (most recent call last):
+  File "/leonardo/prod/spack/5.2/install/0.21/linux-rhel8-icelake/gcc-8.5.0/anaconda3-2023.09-0-zcre7pfofz45c3btxpdk5zvcicdq5evx/bin/conda", line 12, in <module>
+    from conda.cli import main
+ModuleNotFoundError: No module named 'conda'
+
+Splits:
+['train', 'valid', 'test']
+19992 986 986
+
+TEST set: -------------------------------------------------------------
+    image_id  ...            label
+0  id_388372  ...    Open mid rise
+1  id_394258  ...      Dense trees
+2  id_388689  ...      Bush, scrub
+3  id_400562  ...  Scattered trees
+4  id_390823  ...   Sparsely built
+
+[5 rows x 5 columns]
+
+VALIDATION set: -------------------------------------------------------
+    image_id  ...               label
+0  id_354343  ...      Large low rise
+1  id_357160  ...   Compact high rise
+2  id_367422  ...         Dense trees
+3  id_352807  ...    Compact low rise
+4  id_374343  ...  Bare rock or paved
+
+[5 rows x 5 columns]
+
+TRAIN set: ------------------------------------------------------------
+    image_id  ...                 label
+0   id_57308  ...       Scattered trees
+1  id_227045  ...  Lightweight low rise
+2  id_112760  ...    Bare rock or paved
+3   id_73880  ...           Dense trees
+4  id_161967  ...           Bush, scrub
+
+[5 rows x 5 columns]
+{'02 - Blue': {'mean': 0.12951369832779297, 'std': 0.041416877498902216}, '03 - Green': {'mean': 0.11724833593129509, 'std': 0.051952108315916054}, '04 - Red': {'mean': 0.1138138993057747, 'std': 0.07330840290482347}, '05 - VH.LEE Filtered': {'mean': 0.06152846527252053, 'std': 5.456680325035277}, '05 - Vegetation Red Edge': {'mean': 0.12716546610305954, 'std': 0.06934840587770716}, '06 - VV.LEE Filtered': {'mean': 0.34350764473414136, 'std': 11.812638378874178}, '06 - Vegetation Red Edge': {'mean': 0.17066448744392584, 'std': 0.0750401797551518}, '07 - Vegetation Red Edge': {'mean': 0.19278397599902083, 'std': 0.08557120212752153}, '08 - NIR': {'mean': 0.1854726977151807, 'std': 0.0864907033157693}, '08A - Vegetation Red Edge': {'mean': 0.20727600167416374, 'std': 0.09395276409778816}, '11 - SWIR': {'mean': 0.17683092157763056, 'std': 0.10236901653614466}, '12 - SWIR': {'mean': 0.12848471039637233, 'std': 0.0922578699908829}}
+Traceback (most recent call last):
+  File "/leonardo/home/userexternal/cditulli/thesis/training_geobench_so2sat.py", line 523, in <module>
+    main()
+  File "/leonardo/home/userexternal/cditulli/thesis/training_geobench_so2sat.py", line 432, in main
+    data_module = GEOBenchMSIDataModule(train_df, val_df, test_df, label2idx, stats_dict, batch_size)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: GEOBenchMSIDataModule.__init__() missing 1 required positional argument: 'selected_bands'
+srun: error: lrdn0075: task 0: Exited with exit code 1

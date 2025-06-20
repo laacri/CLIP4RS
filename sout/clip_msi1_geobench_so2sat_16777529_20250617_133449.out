@@ -1,0 +1,33 @@
+Running on nodes: lrdn0018
+Arguments passed: 100 1
+/leonardo/home/userexternal/cditulli/thesis
+total 204
+drwxr-xr-x  2 cditulli interactive  4096 Jun 17 12:10 checkpoints
+-rw-r--r--  1 cditulli interactive    47 Jun 12 15:53 clip_download.py
+drwxr-xr-x 15 cditulli interactive  4096 Jun 17 12:09 logs
+-rw-r--r--  1 cditulli interactive     8 Jun 11 17:57 README.md
+-rw-r--r--  1 cditulli interactive   237 Jun 15 19:03 requirements.txt
+drwxr-xr-x  2 cditulli interactive  4096 Jun 17 13:34 sout
+drwxr-xr-x 15 cditulli interactive  4096 Jun 17 12:09 tb_logs
+-rw-r--r--  1 cditulli interactive   701 Jun 14 14:31 training1.sh
+-rw-r--r--  1 cditulli interactive   701 Jun 14 14:31 training2.sh
+-rw-r--r--  1 cditulli interactive 12405 Jun 14 15:20 training_clip1_original.py
+-rw-r--r--  1 cditulli interactive 12529 Jun 14 15:20 training_clip2_original.py
+-rw-r--r--  1 cditulli interactive  9609 Jun 14 12:30 training_clip_msi1.py
+-rw-r--r--  1 cditulli interactive 12141 Jun 14 12:30 training_clip_msi2.py
+-rw-r--r--  1 cditulli interactive 20643 Jun 16 12:13 training_geobench_brick.py
+-rw-r--r--  1 cditulli interactive 19453 Jun 17 01:22 training_geobench_eurosat.py
+-rw-r--r--  1 cditulli interactive 21258 Jun 17 01:22 training_geobench_forestnet.py
+-rw-r--r--  1 cditulli interactive 20457 Jun 16 12:21 training_geobench_pv4ger.py
+-rw-r--r--  1 cditulli interactive  1281 Jun 17 01:22 training_geobench.sh
+-rw-r--r--  1 cditulli interactive 20339 Jun 17 13:34 training_geobench_so2sat.py
+Traceback (most recent call last):
+  File "/leonardo/prod/spack/5.2/install/0.21/linux-rhel8-icelake/gcc-8.5.0/anaconda3-2023.09-0-zcre7pfofz45c3btxpdk5zvcicdq5evx/bin/conda", line 12, in <module>
+    from conda.cli import main
+ModuleNotFoundError: No module named 'conda'
+Traceback (most recent call last):
+  File "/leonardo/home/userexternal/cditulli/thesis/training_geobench_so2sat.py", line 35, in <module>
+    torch.set_float32_matmul_precision('medium' | 'high')
+                                       ~~~~~~~~~^~~~~~~~
+TypeError: unsupported operand type(s) for |: 'str' and 'str'
+srun: error: lrdn0018: task 0: Exited with exit code 1

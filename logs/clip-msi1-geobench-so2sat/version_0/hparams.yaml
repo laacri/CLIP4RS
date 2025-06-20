@@ -1,0 +1,20 @@
+class_names:
+- Bare rock or paved
+- Bare soil or sand
+- Bush, scrub
+- Compact high rise
+- Compact low rise
+- Compact mid rise
+- Dense trees
+- Heavy industry
+- Large low rise
+- Lightweight low rise
+- Low plants
+- Open high rise
+- Open low rise
+- Open mid rise
+- Scattered trees
+- Sparsely built
+- Water
+in_channels: 18
+learning_rate: 0.001

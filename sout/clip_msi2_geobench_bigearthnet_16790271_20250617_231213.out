@@ -1,0 +1,123 @@
+Running on nodes: lrdn3401
+Arguments passed: 100 2
+/leonardo/home/userexternal/cditulli/thesis
+total 232
+drwxr-xr-x  2 cditulli interactive  4096 Jun 17 20:20 checkpoints
+-rw-r--r--  1 cditulli interactive    47 Jun 12 15:53 clip_download.py
+drwxr-xr-x 18 cditulli interactive  4096 Jun 17 18:24 logs
+-rw-r--r--  1 cditulli interactive     8 Jun 11 17:57 README.md
+-rw-r--r--  1 cditulli interactive   237 Jun 15 19:03 requirements.txt
+drwxr-xr-x  2 cditulli interactive  4096 Jun 17 23:12 sout
+drwxr-xr-x 18 cditulli interactive  4096 Jun 17 18:24 tb_logs
+-rw-r--r--  1 cditulli interactive   701 Jun 14 14:31 training1.sh
+-rw-r--r--  1 cditulli interactive   701 Jun 14 14:31 training2.sh
+-rw-r--r--  1 cditulli interactive 12405 Jun 14 15:20 training_clip1_original.py
+-rw-r--r--  1 cditulli interactive 12529 Jun 14 15:20 training_clip2_original.py
+-rw-r--r--  1 cditulli interactive  9609 Jun 14 12:30 training_clip_msi1.py
+-rw-r--r--  1 cditulli interactive 12141 Jun 14 12:30 training_clip_msi2.py
+-rw-r--r--  1 cditulli interactive 25912 Jun 17 20:01 training_geobench_bigearthnet.py
+-rw-r--r--  1 cditulli interactive 20643 Jun 16 12:13 training_geobench_brick.py
+-rw-r--r--  1 cditulli interactive 19453 Jun 17 01:22 training_geobench_eurosat.py
+-rw-r--r--  1 cditulli interactive 21258 Jun 17 01:22 training_geobench_forestnet.py
+-rw-r--r--  1 cditulli interactive 20457 Jun 16 12:21 training_geobench_pv4ger.py
+-rw-r--r--  1 cditulli interactive  1443 Jun 17 17:57 training_geobench.sh
+-rw-r--r--  1 cditulli interactive 20356 Jun 17 13:49 training_geobench_so2sat.py
+Traceback (most recent call last):
+  File "/leonardo/prod/spack/5.2/install/0.21/linux-rhel8-icelake/gcc-8.5.0/anaconda3-2023.09-0-zcre7pfofz45c3btxpdk5zvcicdq5evx/bin/conda", line 12, in <module>
+    from conda.cli import main
+ModuleNotFoundError: No module named 'conda'
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+You are using a CUDA device ('NVIDIA A100-SXM-64GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+  | Name       | Type                       | Params | Mode 
+------------------------------------------------------------------
+0 | train_map  | MultilabelAveragePrecision | 0      | train
+1 | val_map    | MultilabelAveragePrecision | 0      | train
+2 | test_map   | MultilabelAveragePrecision | 0      | train
+3 | clip_model | CLIP                       | 151 M  | eval 
+4 | embedder   | MSIEmbedder2               | 1.0 K  | train
+------------------------------------------------------------------
+1.0 K     Trainable params
+151 M     Non-trainable params
+151 M     Total params
+605.113   Total estimated model params size (MB)
+9         Modules in train mode
+227       Modules in eval mode
+SLURM auto-requeueing enabled. Setting signal handlers.
+Splits:
+['train', 'valid', 'test']
+20000 1000 1000
+
+TEST set: -------------------------------------------------------------
+    image_id  ...                         ground_truth_binary_vector
+0  id_427032  ...  [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, ...
+1  id_493029  ...  [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, ...
+2  id_513633  ...  [0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, ...
+3  id_441746  ...  [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...
+4  id_510900  ...  [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ...
+
+[5 rows x 6 columns]
+
+VALIDATION set: -------------------------------------------------------
+    image_id  ...                         ground_truth_binary_vector
+0  id_292562  ...  [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, ...
+1  id_370652  ...  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+2  id_387462  ...  [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, ...
+3  id_362968  ...  [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
+4  id_373535  ...  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, ...
+
+[5 rows x 6 columns]
+
+TRAIN set: ------------------------------------------------------------
+    image_id  ...                         ground_truth_binary_vector
+0   id_16356  ...  [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, ...
+1   id_75314  ...  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, ...
+2  id_266503  ...  [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, ...
+3  id_218490  ...  [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, ...
+4   id_74570  ...  [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, ...
+
+[5 rows x 6 columns]
+{'01 - Coastal aerosol': {'mean': 378.40242904166666, 'std': 462.4624826437909}, '02 - Blue': {'mean': 482.2740801493056, 'std': 519.3301579533276}, '03 - Green': {'mean': 706.5374882881945, 'std': 552.3564215834909}, '04 - Red': {'mean': 720.9261010069445, 'std': 680.9718368714498}, '05 - Vegetation Red Edge': {'mean': 1100.6715356493055, 'std': 690.2810266069175}, '06 - Vegetation Red Edge': {'mean': 1909.292506295139, 'std': 982.217140769149}, '07 - Vegetation Red Edge': {'mean': 2191.6991168368054, 'std': 1143.4163650473085}, '08 - NIR': {'mean': 2336.8636470486113, 'std': 1248.0391989447999}, '08A - Vegetation Red Edge': {'mean': 2394.7424602430556, 'std': 1223.647106143125}, '09 - Water vapour': {'mean': 2368.3199590173613, 'std': 1166.8270457724707}, '11 - SWIR': {'mean': 1875.2568653680555, 'std': 1092.423276097965}, '12 - SWIR': {'mean': 1229.38421421875, 'std': 862.7150067251513}}
+Traceback (most recent call last):
+  File "/leonardo/home/userexternal/cditulli/thesis/training_geobench_bigearthnet.py", line 665, in <module>
+    main()
+  File "/leonardo/home/userexternal/cditulli/thesis/training_geobench_bigearthnet.py", line 655, in main
+    trainer.fit(model, datamodule=data_module)
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/trainer/trainer.py", line 561, in fit
+    call._call_and_handle_interrupt(
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/trainer/call.py", line 48, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/trainer/trainer.py", line 599, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/trainer/trainer.py", line 1012, in _run
+    results = self._run_stage()
+              ^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/trainer/trainer.py", line 1054, in _run_stage
+    self._run_sanity_check()
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/trainer/trainer.py", line 1083, in _run_sanity_check
+    val_loop.run()
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/loops/utilities.py", line 179, in _decorator
+    return loop_run(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/loops/evaluation_loop.py", line 145, in run
+    self._evaluation_step(batch, batch_idx, dataloader_idx, dataloader_iter)
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/loops/evaluation_loop.py", line 437, in _evaluation_step
+    output = call._call_strategy_hook(trainer, hook_name, *step_args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/trainer/call.py", line 328, in _call_strategy_hook
+    output = fn(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/lightning/pytorch/strategies/strategy.py", line 412, in validation_step
+    return self.lightning_module.validation_step(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/thesis/training_geobench_bigearthnet.py", line 422, in validation_step
+    self.val_acc.update(probs, y.int())
+    ^^^^^^^^^^^^
+  File "/leonardo/home/userexternal/cditulli/.conda/envs/test_env/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1688, in __getattr__
+    raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+AttributeError: 'CLIPWithMSIEmbedder2' object has no attribute 'val_acc'
+Sanity Checking: |          | 0/? [00:00<?, ?it/s]Sanity Checking:   0%|          | 0/2 [00:00<?, ?it/s]Sanity Checking DataLoader 0:   0%|          | 0/2 [00:00<?, ?it/s]                                                                   srun: error: lrdn3401: task 0: Exited with exit code 1
