@@ -357,7 +357,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--max_epochs', type=int, default=10, help='Number of training epochs')
-    parser.add_argument('--dataset', type=int, choices=['eurosat', 'm-so2sat'], required=True, help='Training data: EuroSAT or m-so2sat')
+    parser.add_argument('--dataset', type=str, choices=['eurosat', 'm-so2sat'], required=True, help='Training data: EuroSAT or m-so2sat')
     args = parser.parse_args()
     max_epochs = args.max_epochs
     dataset = args.dataset

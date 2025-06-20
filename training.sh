@@ -16,7 +16,8 @@ timestamp=$(date +%Y%m%d_%H%M%S)
 #outfile="./sout/clip_msi${2}_geobench_forestnet_${SLURM_JOB_ID}_${timestamp}.out"
 #outfile="./sout/clip_msi${2}_geobench_eurosat_${SLURM_JOB_ID}_${timestamp}.out"
 #outfile="./sout/clip_msi${2}_geobench_so2sat_${SLURM_JOB_ID}_${timestamp}.out"
-outfile="./sout/clip_msi${2}_geobench_bigearthnet_${SLURM_JOB_ID}_${timestamp}.out"
+#outfile="./sout/clip_msi${2}_geobench_bigearthnet_${SLURM_JOB_ID}_${timestamp}.out"
+outfile="./sout/clip_transfer_${2}_${SLURM_JOB_ID}_${timestamp.out}"
 exec > >(tee -a "$outfile") 2>&1
 
 echo "Running on nodes: $SLURM_NODELIST"
