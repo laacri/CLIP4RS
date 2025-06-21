@@ -220,6 +220,7 @@ class EuroSATMSIDataset(Dataset):
 
         with rasterio.open(img_path) as src:
             img = src.read()  # shape: [C, H, W] == [13, 64, 64]
+            img = img.astype(np.float32)  # necessary or the script will fail for TypeError
 
         # Per-band normalization based on global stats
         means = self.band_stats["mean"]
