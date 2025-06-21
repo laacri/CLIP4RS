@@ -230,10 +230,7 @@ class EuroSATMSIDataset(Dataset):
             img[c] = (img[c] - means[c]) / (stds[c] + 1e-6)
 
         img = torch.tensor(img, dtype=torch.float32)
-
-        if self.transform:
-            img = self.transform(img)
-
+        
         return img, label
     
 
