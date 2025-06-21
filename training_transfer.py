@@ -230,7 +230,7 @@ class EuroSATMSIDataset(Dataset):
             img[c] = (img[c] - means[c]) / (stds[c] + 1e-6)
 
         img = torch.tensor(img, dtype=torch.float32)
-        
+
         return img, label
     
 
@@ -479,7 +479,7 @@ def main():
         # 4. Specify a checkpoint callback
         checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
             dirpath=checkpoint_dir,
-            filename="clip-msi3-transfer-so2sat-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
+            filename="clip-msi-transfer-so2sat-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
             save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
             monitor="val_acc",
             mode="max",
@@ -487,10 +487,10 @@ def main():
         )
 
         # # 5. Specify logger in csv format
-        logger = CSVLogger(save_dir=log_dir, name="clip-msi3-transfer-so2sat")
+        logger = CSVLogger(save_dir=log_dir, name="clip-msi-transfer-so2sat")
 
         # define the logger object
-        logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi3-transfer-so2sat", log_graph = True)
+        logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi-transfer-so2sat", log_graph = True)
 
         # 6. Trainer
         trainer = L.Trainer(
