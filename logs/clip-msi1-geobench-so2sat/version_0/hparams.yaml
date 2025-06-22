@@ -16,5 +16,5 @@ class_names:
 - Scattered trees
 - Sparsely built
 - Water
-in_channels: 18
+in_channels: 12
 learning_rate: 0.001
