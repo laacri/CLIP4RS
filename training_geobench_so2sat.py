@@ -114,7 +114,7 @@ class GEOBenchMSIDataset(Dataset):
         self.df = dataframe.reset_index(drop=True)
         self.label2idx = label2idx
         self.band_stats = band_stats
-        self.selected_bands = selected_bands  # nuova variabile
+        self.selected_bands = selected_bands  # new variable
 
     def __len__(self):
         return len(self.df)
@@ -132,7 +132,7 @@ class GEOBenchMSIDataset(Dataset):
                     band = (band - stats["mean"]) / (stats["std"] + 1e-6)
                     band_data.append(band)
                 else:
-                    raise KeyError(f"Banda {band_name} non trovata nel file {img_path}")
+                    raise KeyError(f"Band {band_name} not found in file {img_path}")
 
         img = np.stack(band_data, axis=0)  # [C, H, W]
         img = torch.tensor(img, dtype=torch.float32)
