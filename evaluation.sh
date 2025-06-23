@@ -5,7 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=4
 #SBATCH --job-name="clip_msi"
 #SBATCH --out="./sout/tmp.out"
 #SBATCH --open-mode=truncate
@@ -15,11 +15,10 @@ outfile="./sout/clip_msi_evaluation_bigearthnet_${SLURM_JOB_ID}_${timestamp}.out
 exec > >(tee -a "$outfile") 2>&1
 
 echo "Running on nodes: $SLURM_NODELIST"
-echo "Arguments passed: $1 $2"
-
+#echo "Arguments passed: $1 $2"
 pwd
 mkdir -p sout
-ls -l
+#ls -l
 export WANDB_MODE=offline
 module load anaconda3
 module load cuda
