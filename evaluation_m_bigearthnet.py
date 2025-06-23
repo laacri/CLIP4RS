@@ -117,6 +117,32 @@ class MSIEmbedder2(nn.Module):
 
     def forward(self, x):
         return self.proj2(x)
+    
+
+class MSIEmbedder3(nn.Module):
+    def __init__(self, max_in_channels: int = 13): # mazimum number of allowed channels
+        super(MSIEmbedder3, self).__init__()
+        self.max_in_channels = max_in_channels
+
+        # The input to the model is always expected to have max_in_channels -> the forward is different
+        self.proj3 = nn.Sequential(
+            nn.Conv2d(max_in_channels, 64, kernel_size=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 3, kernel_size=1),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        ''' x: Tensor of shape [B, C, H, W] where C == self.max_in_channels '''
+        B, C, H, W = x.shape
+        if C < self.max_in_channels:
+            pad_size = self.max_in_channels - C
+            padding = torch.zeros((B, pad_size, H, W), device=x.device, dtype=x.dtype)
+            x = torch.cat([x, padding], dim=1)
+        elif C > self.max_in_channels:
+            raise ValueError(f"Input has {C} channels, but max_in_channels is {self.max_in_channels}")
+
+        return self.proj3(x)
 
 
 class CLIPWithMSIEmbedder1(L.LightningModule):
@@ -322,7 +348,89 @@ class CLIPWithMSIEmbedder2(L.LightningModule):
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.embedder.parameters(), lr=self.learning_rate)
+    
 
+class CLIPWithMSIEmbedder3(L.LightningModule):
+    def __init__(self, in_channels, class_names, learning_rate, class_weights):
+        super().__init__()
+        self.save_hyperparameters(ignore=['class_weights'])
+        self.class_weights = class_weights
+
+        # Load CLIP
+        self.clip_model, _ = clip.load("ViT-B/32", device=device, download_root=os.path.expanduser("~/.cache/clip"))
+        # _ is because we can't use clip preprocess, as it outputs a tensor
+        # but only accepts PIL images as inputs and that's not what MSIEmbedder gives us
+        # Freeze CLIP parameters
+        for param in self.clip_model.parameters():
+            param.requires_grad = False
+
+        self.image_encoder = self.clip_model.encode_image
+        self.text_encoder = self.clip_model.encode_text
+
+        # MSI embedder
+        self.embedder = MSIEmbedder3(in_channels)
+
+        # Compute text embeddings once for all
+        prompts = [f"a satellite photo of a{'n' if name[0].lower() in 'aeiou' else ''} {name.lower()} area" for name in class_names]
+        # "a ... area" are added to the standard prompt
+        tokenized = clip.tokenize(prompts)
+        with torch.no_grad():
+            self.text_features = self.text_encoder(tokenized.to(device)).detach()  # [num_classes, 512]
+            self.text_features /= self.text_features.norm(dim=-1, keepdim=True)
+            #self.register_buffer("text_features", self.text_features) # good practice for constant tensors (like text_features).
+
+        self.learning_rate = learning_rate
+
+        # Transforms to preprocess images after MSIEmbedder, before CLIP
+        self.MSI_to_CLIP_preprocess = T.Compose([
+            T.Resize((224, 224), antialias=False),
+            T.Normalize((0.48145466, 0.4578275, 0.40821073),
+                        (0.26862954, 0.26130258, 0.27577711))
+        ])
+
+    def forward(self, x):
+        x = self.embedder(x)  # [B, 3, 64, 64]
+        x = self.MSI_to_CLIP_preprocess(x)
+        image_features = self.image_encoder(x)  # [B, 512]
+        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+        return image_features  # just return the features, compute similarity later
+
+    def predict_logits(self, x):
+        image_features = self(x)  # [B, 512]
+        logits = 100.0 * image_features @ self.text_features.T  # [B, num_classes]
+        return logits
+
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.predict_logits(x)
+        weights = self.class_weights.to(dtype=logits.dtype, device=logits.device)
+        loss = F.cross_entropy(logits, y, weight=weights) # weights to balance loss function
+        acc = (logits.argmax(dim=1) == y).float().mean()
+        self.log("train_loss", loss, on_step=False, on_epoch=True)
+        self.log("train_acc", acc, on_step=False, on_epoch=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.predict_logits(x)
+        weights = self.class_weights.to(dtype=logits.dtype, device=logits.device)
+        loss = F.cross_entropy(logits, y, weight=weights) # weights to balance loss function
+        acc = (logits.argmax(dim=1) == y).float().mean()
+        self.log("val_loss", loss, on_step=False, on_epoch=True)
+        self.log("val_acc", acc, on_step=False, on_epoch=True)
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self.predict_logits(x)
+        weights = self.class_weights.to(dtype=logits.dtype, device=logits.device)
+        loss = F.cross_entropy(logits, y, weight=weights) # weights to balance loss function
+        acc = (logits.argmax(dim=1) == y).float().mean()
+        self.log("test_loss", loss, on_step=False, on_epoch=True)
+        self.log("test_acc", acc, on_step=False, on_epoch=True)
+
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.embedder.parameters(), lr=self.learning_rate)
+    
 
 
 def add_top_predictions_with_batches_multilabel_MSI(input_df, model, device,
