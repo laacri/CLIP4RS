@@ -34,10 +34,10 @@ source activate test_env
 
 # GEO-Bench run commands
 #srun python training_geobench_brick.py --max_epochs "$1" --model "$2"
-srun python training_geobench_pv4ger.py --max_epochs "$1" --model "$2"
+#srun python training_geobench_pv4ger.py --max_epochs "$1" --model "$2"
 #srun python training_geobench_forestnet.py --max_epochs "$1" --model "$2"
 #srun python training_geobench_eurosat.py --max_epochs "$1" --model "$2"
 #srun python training_geobench_so2sat.py --max_epochs "$1" --model "$2"
-#srun python training_geobench_bigearthnet.py --max_epochs "$1" --model "$2"
+srun python training_geobench_bigearthnet.py --max_epochs "$1" --model "$2"
 # Transfer learning run commands
 #srun python training_transfer.py --max_epochs "$1" --dataset "$2"
