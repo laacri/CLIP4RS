@@ -845,6 +845,10 @@ def main():
     print(f"Micro F1 Score: {micro_f1:.4f}")
 
 
+    del output_df, model, train_df #free up some memory
+    gc.collect()
+
+
     # MODEL 2 EVALUATION
     print("\n### Evaluating CLIP-MSI2 on m-bigearthnet ###\n") # --------------------------------------
     
@@ -888,10 +892,14 @@ def main():
     print(f"Micro F1 Score: {micro_f1:.4f}")
 
 
+    del output_df, model, train_df #free up some memory
+    gc.collect()
+
+
     # MODEL TRANSFER SO2SAT EVALUATION
     print("\n### Evaluating CLIP-MSITs on m-bigearthnet ###\n") # --------------------------------------
     
-    ckpt_path = "/content/drive/MyDrive/Thesis CLIP4EO/checkpoints/clip-msi-transfer-so2sat-epoch=42-val_acc=0.2110.ckpt"
+    ckpt_path = "./checkpoints/clip-msi-transfer-so2sat-epoch=42-val_acc=0.2110.ckpt"
 
     model = CLIPWithMSIEmbedder3.load_from_checkpoint(
         checkpoint_path = ckpt_path,
@@ -931,10 +939,14 @@ def main():
     print(f"Micro F1 Score: {micro_f1:.4f}")
 
 
+    del output_df, model, train_df #free up some memory
+    gc.collect()
+
+
      # MODEL TRANSFER SO2SAT EVALUATION
     print("\n### Evaluating CLIP-MSITE on m-bigearthnet ###\n") # --------------------------------------
     
-    ckpt_path = "/content/drive/MyDrive/Thesis CLIP4EO/checkpoints/clip-msi-transfer-eurosat-epoch=89-val_acc=0.8254.ckpt"
+    ckpt_path = "./checkpoints/clip-msi-transfer-eurosat-epoch=89-val_acc=0.8254.ckpt"
 
     model = CLIPWithMSIEmbedder3.load_from_checkpoint(
         checkpoint_path = ckpt_path,
