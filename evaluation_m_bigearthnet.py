@@ -892,7 +892,7 @@ def main():
     print(f"Micro F1 Score: {micro_f1:.4f}")
 
 
-    del output_df, model, train_df #free up some memory
+    del output_df, model #free up some memory
     gc.collect()
 
 
@@ -939,7 +939,7 @@ def main():
     print(f"Micro F1 Score: {micro_f1:.4f}")
 
 
-    del output_df, model, train_df #free up some memory
+    del output_df, model #free up some memory
     gc.collect()
 
 
