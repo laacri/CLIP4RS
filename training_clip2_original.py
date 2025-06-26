@@ -63,6 +63,17 @@ def normalize(array):
     return (array - array.min()) / (array.max() - array.min())
 
 
+def normalize_per_channel(array):
+    array = array.astype(np.float32)
+    for i in range(array.shape[0]):
+        band = array[i]
+        band_min, band_max = band.min(), band.max()
+        if band_max > band_min:
+            array[i] = (band - band_min) / (band_max - band_min)
+        else:
+            array[i] = 0.0 # just in case
+    return array
+
 class EuroSATMSIDataset(Dataset):
     def __init__(self, dataframe, label2idx, transform=None):
         self.df = dataframe.reset_index(drop=True) # ensure input df has continuous index
@@ -80,7 +91,9 @@ class EuroSATMSIDataset(Dataset):
         with rasterio.open(img_path) as src:
             img = src.read()  # shape: [C, H, W] == [13, 64, 64]
 
-        img = normalize(img) # GLOBAL NORMALIZATION -> all pixel values in [0, 1]
+        # img = normalize(img) # GLOBAL NORMALIZATION -> all pixel values in [0, 1]
+        # img = torch.tensor(img, dtype=torch.float32
+        img = normalize_per_channel(img) # PER-IMAGE PER-CHANNEL NORMALIZATION
         img = torch.tensor(img, dtype=torch.float32)
 
         if self.transform:
@@ -311,8 +324,8 @@ def main():
 
     # 4. Specify a checkpoint callback
     checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
-        dirpath=checkpoint_dir,
-        filename="clip-msi2-eurosat-lr5e-3-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
+        dirpath=checkpoint_dir,  #lr5e-3
+        filename="clip-msi2-eurosat-norm2-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
         save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
         monitor="val_acc",
         mode="max",
@@ -325,10 +338,10 @@ def main():
     # - save_top_k=0 disables saving entirely
 
     # # 5. Specify logger in csv format
-    logger = CSVLogger(save_dir=log_dir, name="clip-msi2-eurosat-lr5e-3")
+    logger = CSVLogger(save_dir=log_dir, name="clip-msi2-eurosat-norm2")
 
     # define the logger object
-    logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi2-eurosat-lr5e-3", log_graph=True)
+    logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi2-eurosat-norm2", log_graph=True)
 
     # 6. Trainer
     trainer = L.Trainer(

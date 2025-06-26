@@ -74,7 +74,6 @@ def normalize_per_channel(array):
     return array
 
 
-
 class EuroSATMSIDataset(Dataset):
     def __init__(self, dataframe, label2idx, transform=None):
         self.df = dataframe.reset_index(drop=True) # ensure input df has continuous index
