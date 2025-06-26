@@ -264,22 +264,67 @@ class EuroSATDataModule(L.LightningDataModule):
     
 # A SINGLE EMBEDDER TO RULE THEM ALL - transfer learning
 # Define a fixed number of input channels and put to zero the ones in excess
+# class MSIEmbedder3(nn.Module):
+#     def __init__(self, max_in_channels: int = 13): # mazimum number of allowed channels
+#         super(MSIEmbedder3, self).__init__()
+#         self.max_in_channels = max_in_channels
+
+#         # The input to the model is always expected to have max_in_channels -> the forward is different
+#         self.proj3 = nn.Sequential(
+#             nn.Conv2d(max_in_channels, 64, kernel_size=1),
+#             nn.ReLU(),
+#             nn.Conv2d(64, 3, kernel_size=1),
+#             nn.ReLU()
+#         )
+
+#     def forward(self, x):
+#         ''' x: Tensor of shape [B, C, H, W] where C == self.max_in_channels '''
+#         B, C, H, W = x.shape
+#         if C < self.max_in_channels:
+#             # Pad with zeros the channel dimension to make it
+#             # [B, c < C, H, W] -> [B, max_in_channels, H, W]
+#             pad_size = self.max_in_channels - C
+#             padding = torch.zeros((B, pad_size, H, W), device=x.device, dtype=x.dtype)
+#             x = torch.cat([x, padding], dim=1)
+#         elif C > self.max_in_channels:
+#             raise ValueError(f"Input has {C} channels, but max_in_channels is {self.max_in_channels}")
+
+#         return self.proj3(x)
+
+
+# TRY NEW EMBEDDER 3, deeper network - only for EUROSAT
 class MSIEmbedder3(nn.Module):
-    def __init__(self, max_in_channels: int = 13): # mazimum number of allowed channels
-        super(MSIEmbedder3, self).__init__()
+    def __init__(self, max_in_channels: int = 13):
+        super().__init__()
         self.max_in_channels = max_in_channels
 
-        # The input to the model is always expected to have max_in_channels -> the forward is different
         self.proj3 = nn.Sequential(
-            nn.Conv2d(max_in_channels, 64, kernel_size=1),
+            nn.Conv2d(max_in_channels, 32, kernel_size=1),  # channel mixing only
+            nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.Conv2d(64, 3, kernel_size=1),
+
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),    # spatial reasoning, padding = kernel_size // 2
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, 32, kernel_size=3, padding=1),    # intermediate layer for feature refinement
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+
+            nn.Conv2d(32, 3, kernel_size=1),                # final projection on 3 output channels
             nn.ReLU()
         )
 
     def forward(self, x):
-        ''' x: Tensor of shape [B, C, H, W] where C == self.max_in_channels '''
         B, C, H, W = x.shape
+
+        # Now the channels wil be reordererd and padded before, 
+        # but we keep this part for sanity checking
+        assert C == self.max_in_channels, (
+            f"Expected input with {self.max_in_channels} channels, got {C}. "
+            "Ensure input is padded or reordered correctly."
+        )
+
         if C < self.max_in_channels:
             # Pad with zeros the channel dimension to make it
             # [B, c < C, H, W] -> [B, max_in_channels, H, W]
@@ -288,7 +333,7 @@ class MSIEmbedder3(nn.Module):
             x = torch.cat([x, padding], dim=1)
         elif C > self.max_in_channels:
             raise ValueError(f"Input has {C} channels, but max_in_channels is {self.max_in_channels}")
-
+        
         return self.proj3(x)
 
 
@@ -625,18 +670,26 @@ def main():
         # 4. Specify a checkpoint callback
         checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
             dirpath=checkpoint_dir,
-            filename="clip-msi-transfer-eurosat-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
+            filename="clip-msi-transfer-eurosat-4l-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
             save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
             monitor="val_acc",
             mode="max",
             save_last = True
         )
 
+        # Include early stopping callback
+        early_stopping = EarlyStopping(
+            monitor = "val_loss",
+            patience = 10,         # stop training if val_loss doesn't improve for 10 epochs
+            verbose = True,
+            mode = "min"     # loss needs to be minimized
+        )
+
         # # 5. Specify logger in csv format
-        logger = CSVLogger(save_dir=log_dir, name="clip-msi-transfer-eurosat")
+        logger = CSVLogger(save_dir=log_dir, name="clip-msi-transfer-eurosat-4l-")
 
         # define the logger object
-        logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi-transfer-eurosat", log_graph = True)
+        logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi-transfer-eurosat-4l-", log_graph = True)
 
         # 6. Trainer
         trainer = L.Trainer(
@@ -645,7 +698,7 @@ def main():
             devices=1,
             #precision="16-mixed", # enable AMP (Automatic Mixed Precision) # -> error after first epoch
             log_every_n_steps=5,
-            callbacks=[checkpoint_callback],
+            callbacks=[checkpoint_callback, early_stopping],
             logger=[logger, logger_tb]
         )
 
