@@ -6,13 +6,14 @@
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
-#SBATCH --job-name="clip_msi1"
+#SBATCH --job-name="clip_msi"
 #SBATCH --out="./sout/tmp.out"
 #SBATCH --open-mode=truncate
 
 
 timestamp=$(date +%Y%m%d_%H%M%S)
-outfile="./sout/clip_msi1_trained_lr5e-3_${SLURM_JOB_ID}_${timestamp}.out"
+# For MSI1, use the following template
+outfile="./sout/clip_msi1_eurosat_norm2_${SLURM_JOB_ID}_${timestamp}.out"
 exec > >(tee -a "$outfile") 2>&1
 
 echo "Running on nodes: $SLURM_NODELIST"

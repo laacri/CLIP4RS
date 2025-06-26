@@ -37,7 +37,7 @@ log_dir = './logs/'
 tb_log_dir = './tb_logs/'
 batch_size = 32
 num_workers = 4
-learning_rate = 5e-3 #1e-3
+learning_rate = 1e-3 #5e-3
 
 # Loading and mapping labels
 labels_map = {'SeaLake' : 'Sea or Lake',
@@ -62,6 +62,19 @@ def normalize(array):
     return (array - array.min()) / (array.max() - array.min())
 
 
+def normalize_per_channel(array):
+    array = array.astype(np.float32)
+    for i in range(array.shape[0]):
+        band = array[i]
+        band_min, band_max = band.min(), band.max()
+        if band_max > band_min:
+            array[i] = (band - band_min) / (band_max - band_min)
+        else:
+            array[i] = 0.0 # just in case
+    return array
+
+
+
 class EuroSATMSIDataset(Dataset):
     def __init__(self, dataframe, label2idx, transform=None):
         self.df = dataframe.reset_index(drop=True) # ensure input df has continuous index
@@ -79,7 +92,8 @@ class EuroSATMSIDataset(Dataset):
         with rasterio.open(img_path) as src:
             img = src.read()  # shape: [C, H, W] == [13, 64, 64]
 
-        img = normalize(img) # GLOBAL NORMALIZATION -> all pixel values in [0, 1]
+        #img = normalize(img) # GLOBAL PER-IMAGE NORMALIZATION -> all pixel values in [0, 1]
+        img = normalize_per_channel(img) # PER-IMAGE PER-CHANNEL NORMALIZATION
         img = torch.tensor(img, dtype=torch.float32)
 
         if self.transform:
@@ -136,6 +150,7 @@ class CLIPWithMSIEmbedder1(L.LightningModule):
         self.clip_model, _ = clip.load("ViT-B/32", device=device, download_root=os.path.expanduser("~/.cache/clip"))
         # _ is because we can't use clip preprocess, as it outputs a tensor
         # but only accepts PIL images as inputs and that's not what MSIEmbedder gives us
+        # so we recreate the preprocess pipeline manually (see below)
         # Freeze CLIP parameters
         for param in self.clip_model.parameters():
             param.requires_grad = False
@@ -310,12 +325,15 @@ def main():
     # 4. Specify a checkpoint callback
     checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
         dirpath=checkpoint_dir,
-        filename="clip-msi1-eurosat-lr5e-3-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
+        filename="clip-msi1-eurosat-norm2-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
         save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
         monitor="val_acc",
         mode="max",
         save_last = True
     )
+    # Filenames for different experiments:
+    #"clip-msi1-eurosat-{epoch:02d}-{val_acc:.4f}"
+    #"clip-msi1-eurosat-lr5e-3-{epoch:02d}-{val_acc:.4f}"
 
     # Note:
     # - save_top_k=3 would keep the top 3 best-performing checkpoints
@@ -323,10 +341,10 @@ def main():
     # - save_top_k=0 disables saving entirely
 
     # # 5. Specify logger in csv format
-    logger = CSVLogger(save_dir=log_dir, name="clip-msi1-eurosat-lr5e-3")
+    logger = CSVLogger(save_dir=log_dir, name="clip-msi1-eurosat-norm2")
 
     # define the logger object
-    logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi1-eurosat-lr5e-3", log_graph = True)
+    logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi1-eurosat-norm2", log_graph = True)
 
     # 6. Trainer
     trainer = L.Trainer(
