@@ -1,0 +1,36 @@
+Running on nodes: lrdn3361
+Arguments passed: 100 
+/leonardo/home/userexternal/cditulli/thesis
+total 328
+drwxr-xr-x  2 cditulli interactive 12288 Jun 27 11:45 checkpoints
+-rw-r--r--  1 cditulli interactive    47 Jun 12 15:53 clip_download.py
+-rw-r--r--  1 cditulli interactive 41929 Jun 25 11:49 evaluation_m_bigearthnet.py
+-rw-r--r--  1 cditulli interactive   672 Jun 23 23:34 evaluation.sh
+drwxr-xr-x 23 cditulli interactive  4096 Jun 26 21:06 logs
+drwxr-xr-x  2 cditulli interactive  4096 Jun 25 16:05 output
+-rw-r--r--  1 cditulli interactive     8 Jun 11 17:57 README.md
+-rw-r--r--  1 cditulli interactive   237 Jun 15 19:03 requirements.txt
+drwxr-xr-x  2 cditulli interactive  4096 Jun 27 13:44 sout
+drwxr-xr-x 23 cditulli interactive  4096 Jun 26 21:06 tb_logs
+-rw-r--r--  1 cditulli interactive   738 Jun 26 10:40 training1.sh
+-rw-r--r--  1 cditulli interactive   776 Jun 27 09:57 training2.sh
+-rw-r--r--  1 cditulli interactive 16450 Jun 27 13:43 training_clip1_original.py
+-rw-r--r--  1 cditulli interactive 13025 Jun 27 13:43 training_clip2_original.py
+-rw-r--r--  1 cditulli interactive  9609 Jun 14 12:30 training_clip_msi1.py
+-rw-r--r--  1 cditulli interactive 12141 Jun 14 12:30 training_clip_msi2.py
+-rw-r--r--  1 cditulli interactive 27467 Jun 18 16:44 training_geobench_bigearthnet.py
+-rw-r--r--  1 cditulli interactive 20643 Jun 16 12:13 training_geobench_brick.py
+-rw-r--r--  1 cditulli interactive 19453 Jun 17 01:22 training_geobench_eurosat.py
+-rw-r--r--  1 cditulli interactive 21258 Jun 17 01:22 training_geobench_forestnet.py
+-rw-r--r--  1 cditulli interactive 20457 Jun 16 12:21 training_geobench_pv4ger.py
+-rw-r--r--  1 cditulli interactive 20520 Jun 22 22:48 training_geobench_so2sat.py
+-rw-r--r--  1 cditulli interactive  1641 Jun 26 16:38 training.sh
+-rw-r--r--  1 cditulli interactive 27976 Jun 26 16:38 training_transfer.py
+Traceback (most recent call last):
+  File "/leonardo/prod/spack/5.2/install/0.21/linux-rhel8-icelake/gcc-8.5.0/anaconda3-2023.09-0-zcre7pfofz45c3btxpdk5zvcicdq5evx/bin/conda", line 12, in <module>
+    from conda.cli import main
+ModuleNotFoundError: No module named 'conda'
+usage: training_transfer.py [-h] [--max_epochs MAX_EPOCHS] --dataset
+                            {eurosat,m-so2sat}
+training_transfer.py: error: argument --dataset: invalid choice: '' (choose from 'eurosat', 'm-so2sat')
+srun: error: lrdn3361: task 0: Exited with exit code 2
