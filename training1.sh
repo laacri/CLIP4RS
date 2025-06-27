@@ -13,7 +13,7 @@
 
 timestamp=$(date +%Y%m%d_%H%M%S)
 # For MSI1, use the following template
-outfile="./sout/clip_msi1_eurosat_norm2_${SLURM_JOB_ID}_${timestamp}.out"
+outfile="./sout/clip_msi1_eurosat_norm3_${SLURM_JOB_ID}_${timestamp}.out"
 exec > >(tee -a "$outfile") 2>&1
 
 echo "Running on nodes: $SLURM_NODELIST"
