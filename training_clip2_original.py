@@ -341,7 +341,7 @@ def main():
     logger = CSVLogger(save_dir=log_dir, name="clip-msi2-eurosat-norm2")
 
     # define the logger object
-    logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi2-eurosat-norm2", log_graph=True)
+    logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi2-eurosat-lr5e-3", log_graph=True)
 
     # 6. Trainer
     trainer = L.Trainer(

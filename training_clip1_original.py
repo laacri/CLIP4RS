@@ -56,12 +56,13 @@ labels = list(labels_map.values())
 
 
 
-# Global normalization over all 13 channels
+# Per-image global normalization - norm 1
 def normalize(array):
     array = array.astype(np.float32)
     return (array - array.min()) / (array.max() - array.min())
 
 
+# Per-image per-channel normalization - norm 2
 def normalize_per_channel(array):
     array = array.astype(np.float32)
     for i in range(array.shape[0]):
@@ -74,11 +75,87 @@ def normalize_per_channel(array):
     return array
 
 
+# Global per-channel normalization with stats computed on train_df - norm 3
+def compute_eu_band_stats(df, n_bands=13):
+    ''' Compute global per-channel mean and std for EuroSAT. '''
+    band_means = [[] for _ in range(n_bands)]
+    band_stds = [[] for _ in range(n_bands)]
+
+    for idx, row in df.iterrows():
+        img_path = row["filename"]
+        try:
+            with rasterio.open(img_path) as src:
+                for i in range(n_bands):
+                    stats = src.stats()[i]
+                    band_means[i].append(stats.mean)
+                    band_stds[i].append(stats.std)
+        except Exception as e:
+            print(f"Error processing {img_path}: {e}")
+
+    global_mean = [np.mean(m) for m in band_means]
+    global_std = [np.mean(s) for s in band_stds]
+    global_stats = {"mean": global_mean, "std": global_std}
+    
+    return global_stats
+
+# class EuroSATMSIDataset(Dataset):
+#     def __init__(self, dataframe, label2idx, transform=None):
+#         self.df = dataframe.reset_index(drop=True) # ensure input df has continuous index
+#         self.transform = transform
+#         self.label2idx = label2idx # mapping between string labels and associated integers
+
+#     def __len__(self):
+#         return len(self.df)
+
+#     def __getitem__(self, idx):
+#         img_path = self.df.loc[idx, "filename"]
+#         label_str = self.df.loc[idx, "label"]
+#         label = self.label2idx[label_str]
+
+#         with rasterio.open(img_path) as src:
+#             img = src.read()  # shape: [C, H, W] == [13, 64, 64]
+
+#         #img = normalize(img) # GLOBAL PER-IMAGE NORMALIZATION -> all pixel values in [0, 1]
+#         img = normalize_per_channel(img) # PER-IMAGE PER-CHANNEL NORMALIZATION
+#         img = torch.tensor(img, dtype=torch.float32)
+
+#         if self.transform:
+#             img = self.transform(img)
+
+#         return img, label
+    
+
+# class EuroSATDataModule(L.LightningDataModule):
+#     def __init__(self, train_df, val_df, test_df, label2idx, batch_size):
+#         super().__init__()
+#         self.train_df = train_df
+#         self.val_df = val_df
+#         self.test_df = test_df
+#         self.label2idx = label2idx
+#         self.batch_size = batch_size
+
+#     def setup(self, stage=None):
+#         self.train_dataset = EuroSATMSIDataset(self.train_df, self.label2idx)
+#         self.val_dataset = EuroSATMSIDataset(self.val_df, self.label2idx)
+#         self.test_dataset = EuroSATMSIDataset(self.test_df, self.label2idx)
+
+#     def train_dataloader(self):
+#         return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=num_workers, pin_memory=(device == 'cuda')) # optimized
+
+
+#     def val_dataloader(self):
+#         return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=num_workers, pin_memory=(device == 'cuda')) # optimized
+
+
+#     def test_dataloader(self):
+#         return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=num_workers, pin_memory=(device == 'cuda')) # optimized
+
+
 class EuroSATMSIDataset(Dataset):
-    def __init__(self, dataframe, label2idx, transform=None):
+    def __init__(self, dataframe, label2idx, band_stats):
         self.df = dataframe.reset_index(drop=True) # ensure input df has continuous index
-        self.transform = transform
         self.label2idx = label2idx # mapping between string labels and associated integers
+        self.band_stats = band_stats
 
     def __len__(self):
         return len(self.df)
@@ -90,30 +167,34 @@ class EuroSATMSIDataset(Dataset):
 
         with rasterio.open(img_path) as src:
             img = src.read()  # shape: [C, H, W] == [13, 64, 64]
+            img = img.astype(np.float32)  # necessary or the script will fail for TypeError
 
-        #img = normalize(img) # GLOBAL PER-IMAGE NORMALIZATION -> all pixel values in [0, 1]
-        img = normalize_per_channel(img) # PER-IMAGE PER-CHANNEL NORMALIZATION
+        # Per-band normalization based on global stats
+        means = self.band_stats["mean"]
+        stds = self.band_stats["std"]
+
+        for c in range(img.shape[0]):
+            img[c] = (img[c] - means[c]) / (stds[c] + 1e-6)
+
         img = torch.tensor(img, dtype=torch.float32)
-
-        if self.transform:
-            img = self.transform(img)
 
         return img, label
     
 
 class EuroSATDataModule(L.LightningDataModule):
-    def __init__(self, train_df, val_df, test_df, label2idx, batch_size):
+    def __init__(self, train_df, val_df, test_df, label2idx, batch_size, band_stats):
         super().__init__()
         self.train_df = train_df
         self.val_df = val_df
         self.test_df = test_df
         self.label2idx = label2idx
         self.batch_size = batch_size
+        self.band_stats = band_stats # train_df band stats
 
     def setup(self, stage=None):
-        self.train_dataset = EuroSATMSIDataset(self.train_df, self.label2idx)
-        self.val_dataset = EuroSATMSIDataset(self.val_df, self.label2idx)
-        self.test_dataset = EuroSATMSIDataset(self.test_df, self.label2idx)
+        self.train_dataset = EuroSATMSIDataset(self.train_df, self.label2idx, self.band_stats)
+        self.val_dataset = EuroSATMSIDataset(self.val_df, self.label2idx, self.band_stats)
+        self.test_dataset = EuroSATMSIDataset(self.test_df, self.label2idx, self.band_stats)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=num_workers, pin_memory=(device == 'cuda')) # optimized
@@ -301,6 +382,11 @@ def main():
     train_df = pd.DataFrame(data)
     print(train_df.head())
 
+    
+    # Compute global band stats on training dataset
+    band_stats = compute_eu_band_stats(train_df)
+    print(band_stats)
+
 
     # 1. Encode string labels into integers
     le = LabelEncoder()
@@ -309,7 +395,7 @@ def main():
     class_names = list(label2idx.keys())
 
     # 2. Load data module
-    data_module = EuroSATDataModule(train_df, val_df, test_df, label2idx, batch_size)
+    data_module = EuroSATDataModule(train_df, val_df, test_df, label2idx, batch_size, band_stats)
 
     # 3. Create the model
     model_1 = CLIPWithMSIEmbedder1(
@@ -324,7 +410,7 @@ def main():
     # 4. Specify a checkpoint callback
     checkpoint_callback = L.pytorch.callbacks.ModelCheckpoint(
         dirpath=checkpoint_dir,
-        filename="clip-msi1-eurosat-norm2-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
+        filename="clip-msi1-eurosat-norm3-{epoch:02d}-{val_acc:.4f}", # not a format string, values will be filled at runtime
         save_top_k=1, # save only the checkpoint with the highest performance (here, val_acc)
         monitor="val_acc",
         mode="max",
@@ -340,10 +426,10 @@ def main():
     # - save_top_k=0 disables saving entirely
 
     # # 5. Specify logger in csv format
-    logger = CSVLogger(save_dir=log_dir, name="clip-msi1-eurosat-norm2")
+    logger = CSVLogger(save_dir=log_dir, name="clip-msi1-eurosat-norm3")
 
     # define the logger object
-    logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi1-eurosat-norm2", log_graph = True)
+    logger_tb = TensorBoardLogger(tb_log_dir, name = "clip-msi1-eurosat-norm3", log_graph = True)
 
     # 6. Trainer
     trainer = L.Trainer(
