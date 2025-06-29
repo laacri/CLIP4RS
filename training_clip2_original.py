@@ -225,7 +225,6 @@ class MSIEmbedder2(nn.Module):
         return self.proj2(x)
     
 
-
 class CLIPWithMSIEmbedder2(L.LightningModule):
     def __init__(self, in_channels, class_names, learning_rate): # was running with 5e-3!!!
         super().__init__()
@@ -425,10 +424,10 @@ def main():
     # - save_top_k=0 disables saving entirely
 
     # # 5. Specify logger in csv format
-    logger = CSVLogger(save_dir=log_dir, name="clip-msi3-eurosat-norm3")
+    logger = CSVLogger(save_dir=log_dir, name="clip-msi2-eurosat-norm3")
 
     # define the logger object
-    logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi3-eurosat-norm3", log_graph=True)
+    logger_tb = TensorBoardLogger(tb_log_dir, name="clip-msi2-eurosat-norm3", log_graph=True)
     # careful: the tb_log for norm2 has been saved inside lr5e-3
 
     # 6. Trainer
