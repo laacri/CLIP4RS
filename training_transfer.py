@@ -265,7 +265,7 @@ class EuroSATDataModule(L.LightningDataModule):
 # A SINGLE EMBEDDER TO RULE THEM ALL - transfer learning
 # Define a fixed number of input channels and put to zero the ones in excess
 # class MSIEmbedder3(nn.Module):
-#     def __init__(self, max_in_channels: int = 13): # mazimum number of allowed channels
+#     def __init__(self, max_in_channels: int = 13): # maximum number of allowed channels
 #         super(MSIEmbedder3, self).__init__()
 #         self.max_in_channels = max_in_channels
 
